@@ -4,7 +4,7 @@
 #include <chrono>
 #include <cmath>
 #include <numbers>
-#include <collo/collocation-eigen.hpp>
+#include <collo/lobatto.hpp>
 #include <astro/kepler.hpp>
 
 constexpr std::size_t so = 6; // system order
@@ -47,7 +47,7 @@ int main()
 {
     std::ifstream fin("start.dat");
     sv_t y0;
-    fin >> y0[0] >> y0[1] >> y0[2] >> y0[3] >> y0[4] >> y0[5];
+    fin >> y0[0] >> y0[1] >> y0[2] >> y0[3] >> y0[4] >> y0[5]; // a, e, i, Omega, g, M
     double t0, h;
     fin >> t0;
     fin >> h;

@@ -3,10 +3,10 @@
 #include <fstream>
 #include <chrono>
 #include <cmath>
-#include <collo/collocation-eigen.hpp>
+#include <collo/lobatto.hpp>
 
-using std::size_t so = 4; // system order
-using std::size_t ms = 8; // method stages
+constexpr std::size_t so = 4; // system order
+constexpr std::size_t ms = 8; // method stages
 using sv_t = collo::state_vector_t<double, so>;
 
 struct Isochrone
@@ -52,7 +52,8 @@ int main()
 
     std::ifstream fin("start.dat");
     sv_t y0;
-    fin >> y0[0] >> y0[1] >> y0[2] >> y0[3];
+    fin >> y0[0] >> y0[1] >> y0[2] >> y0[3]; // x in kpc, y in kpc, dot x in km/s, dot y in km/s
+    y0[2] /= vu;
     y0[3] /= vu;
     double t0, h;
     fin >> t0;
