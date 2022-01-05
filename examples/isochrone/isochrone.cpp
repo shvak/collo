@@ -3,11 +3,11 @@
 #include <fstream>
 #include <chrono>
 #include <cmath>
-#include <collocation/collocation-eigen.hpp>
+#include <collo/collocation-eigen.hpp>
 
 using std::size_t so = 4; // system order
 using std::size_t ms = 8; // method stages
-using sv_t = collocation::state_vector_t<double, so>;
+using sv_t = collo::state_vector_t<double, so>;
 
 struct Isochrone
 {
@@ -61,7 +61,7 @@ int main()
     fin >> maxsteps;
     fin.close();
 
-    auto lobatto = collocation::make_Lobatto<double, so, ms, Isochrone>(y0, t0, h);
+    auto lobatto = collo::make_Lobatto<double, so, ms, Isochrone>(y0, t0, h);
 
     std::size_t iternum = 0;
     double E_start = Isochrone::energy(lobatto.state());
