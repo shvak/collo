@@ -67,7 +67,7 @@ int main()
     double E_start = Isochrone::energy(lobatto.state());
 
     std::ofstream fout("out.dat");
-    fout << fmt::format("{}\t{}\t{:.17g}\n", 0.0, lobatto.state().transpose(), E_start - E_start);
+    fout << fmt::format("{}\t{}\t{:.17g}\n", /*time*/ 0.0, lobatto.state().transpose(), /*energy*/ 0.0);
 
     auto start = std::chrono::steady_clock::now();
     while(lobatto.steps() < maxsteps)
