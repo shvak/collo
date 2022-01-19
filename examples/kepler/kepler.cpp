@@ -79,7 +79,7 @@ int main()
     std::cout << fmt::format("{} steps finished\n", lobatto.steps());
     std::cout << fmt::format("dE / E = {}\n", (Kepler::energy(lobatto.state()) - E_start) / E_start);
     std::cout << fmt::format("iterations = {}\n", iternum);
-    std::cout << fmt::format("RHS invokes = {}\n", Kepler::count());
+    std::cout << fmt::format("RHS invocations = {}\n", Kepler::count());
     std::cout << fmt::format("time elapsed {}", std::chrono::duration<double>(end - start).count());
 
     return 0;

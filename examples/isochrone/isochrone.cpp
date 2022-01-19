@@ -83,7 +83,7 @@ int main()
     std::cout << fmt::format("{} steps finished\n", lobatto.steps());
     std::cout << fmt::format("dE / E = {}\n", (Isochrone::energy(lobatto.state()) - E_start) / E_start);
     std::cout << fmt::format("iterations = {}\n", iternum);
-    std::cout << fmt::format("RHS invokes = {}\n", Isochrone::count());
+    std::cout << fmt::format("RHS invocations = {}\n", Isochrone::count());
     std::cout << fmt::format("time elapsed {}", std::chrono::duration<double>(end - start).count());
 
     return 0;
