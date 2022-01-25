@@ -2,6 +2,7 @@
 #define ASTRO_KEPLER_HPP
 
 #include <cmath>
+#include <numbers>
 #include <numm/roots.hpp>
 #include "base.hpp"
 
@@ -137,6 +138,15 @@ namespace astro{
 	return arr_t{x, x, x, x, x, x};
     }
 
+    template<numm::number_type num_t>
+    constexpr
+    auto
+    true_angle(num_t angle)
+    {
+	constexpr num_t pi = std::numbers::pi_v<num_t>;
+	return std::fmod(angle + 2 * pi, 2 * pi);
+    }
+
     template<numm::number_type num_t, typename arr_t>
     constexpr
     auto
@@ -153,18 +163,18 @@ namespace astro{
 	      r = std::sqrt(x * x + y * y + z * z),
 	      dot_r = (x * dot_x + y * dot_y + z * dot_z) / r,
 	      p = c2 / kappa2,
-	      est2 = dot_r * dot_r * p / kappa2,
-	      est = std::sqrt(est2),
+	      est = dot_r * std::sqrt(p / kappa2),
+	      est2 = est * est,
 	      ect = p / r - num_t{1.0},
 	      ect2 = ect * ect;
 
 	num_t h = v2 / num_t{2.0} - kappa2 / r,
 	      //a = - kappa2 / h / num_t{2.0}, //num_t{1.0} / (num_t{2.0} / r - v2 / kappa2),
 	      e = std::sqrt(est2 + ect2),
-	      theta = std::atan2(est, ect),
-	      Omega = std::atan2(c_1, -c_2),
+	      theta = true_angle(std::atan2(est, ect)),
+	      Omega = true_angle(std::atan2(c_1, -c_2)),
 	      i = std::acos(c_3 / c),
-	      g = std::atan2(z, std::sin(i) * (x * std::cos(Omega) + y * std::sin(Omega))) - theta;
+	      g = true_angle(std::atan2(z, std::sin(i) * (x * std::cos(Omega) + y * std::sin(Omega))) - theta);
 
 	num_t M;
 	if(h + num_t{1.0} > num_t{1.0}) M = mean_anomaly(hyperbolic_anomaly(true_anomaly_t{theta}, e), e);
