@@ -288,7 +288,7 @@ namespace astro{
     template<numm::number_type num_t, typename arr_t>
     constexpr
     auto
-    cartesian_elements_parabola_orbit_plane(num_t p, num_t e, parabolic_sigma_t<num_t> sigma, num_t kappa2)
+    cartesian_elements_parabola_orbit_plane(num_t p, parabolic_sigma_t<num_t> sigma, num_t kappa2)
     {
 	num_t sigma2 = sigma * sigma,
 	      p_dot_sigma = num_t{2.0} * std::sqrt(kappa2 /  p) / (num_t{1.0} + sigma2);
@@ -306,11 +306,11 @@ namespace astro{
     auto
     cartesian_elements_parabola(const arr_t& ke, num_t kappa2) // ke: p, 1.0, i, Omega, g, M
     {
-	num_t p = ke[0], e = ke[1], i = ke[2], Omega = ke[3], g = ke[4], M = ke[5];
+	num_t p = ke[0], i = ke[2], Omega = ke[3], g = ke[4], M = ke[5];
 	auto sigma = parabolic_sigma(mean_anomaly_t{M});
 
 	return rotate_from_orbit_plane(
-		cartesian_elements_parabola_orbit_plane<num_t, arr_t>(p, e, sigma, kappa2),
+		cartesian_elements_parabola_orbit_plane<num_t, arr_t>(p, sigma, kappa2),
 		i, Omega, g);
     }
 

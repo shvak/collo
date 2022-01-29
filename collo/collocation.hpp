@@ -139,7 +139,7 @@ namespace collo
 		{
 		    auto alphas_prev = alphas;
 		    sva_t f;
-		    for(std::size_t i = 0; i < f.cols(); ++i)
+		    for(std::size_t i = 0; i < sva_t::ColsAtCompileTime; ++i)
 			f.col(i) = rhs(time_point(i),
 				       sv_point(i, alphas));
 		    alphas = f * base_t::inv_lsm() * h;
@@ -196,14 +196,14 @@ namespace collo
 		else return (time_node(i) - time_node(i - 1)) * h;
 	    }
 
-	    auto make_alphas(const base_t::sv_t& y, const auto& t, const auto& h, auto rhs) const
+	    /*auto make_alphas(const base_t::sv_t& y, const auto& t, const auto& h, auto rhs) const
 	    {
 		return base_t::sva_t::Zero();
 	    }
 
 	    void save_alphas(const base_t::sva_t&, const base_t::sv_t&)
 	    {
-	    }
+	    }*/
 
     };
 
@@ -362,7 +362,7 @@ namespace collo
 		    return alphas;
 		}
 		typename base_t::sva_t f;
-		for(std::size_t i = 0; i < f.cols(); ++i)
+		for(std::size_t i = 0; i < base_t::sva_t::ColsAtCompileTime; ++i)
 		    f.col(i) = rhs(tp(t, h, i),
 				   y + alphas * pred_sv_node(i));
 		return (f * Predictor_Base<base_t>::inv_lsm() * h).eval();

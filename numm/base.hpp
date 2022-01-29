@@ -25,7 +25,6 @@ namespace numm{
     constexpr num_t cos(const num_t& x)
     {
 	num_t res{1.0}, x2{x * x}, corr{-x2 / 2.0};
-	std::size_t n = 2;
 	for(std::size_t n = 2; res + corr != res; ++n)
 	{
 	    res += corr;
