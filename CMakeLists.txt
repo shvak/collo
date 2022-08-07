@@ -14,13 +14,13 @@ add_library(collo INTERFACE)
 target_compile_features(collo INTERFACE cxx_std_20)
 target_link_libraries(collo INTERFACE Eigen)
 target_include_directories(collo INTERFACE
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/collo>
+  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
 include(GNUInstallDirs)
 
-install(DIRECTORY collo TYPE INCLUDE)
+install(DIRECTORY include TYPE INCLUDE)
 #install(TARGETS collo EXPORT collo-export)
 #install(EXPORT collo-export DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/collo)
 

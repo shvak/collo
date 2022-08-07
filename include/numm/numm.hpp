@@ -3,4 +3,4 @@
 
 #include "legendre.hpp"
 
-#endif //NUMM_NUMM_HPP
+#endif // NUMM_NUMM_HPP
