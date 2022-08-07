@@ -2,3 +2,5 @@ build
 *.sh
 
 compile_commands.json
+CMakeFiles
+CMakeCache.txt
