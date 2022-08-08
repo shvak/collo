@@ -20,3 +20,5 @@ Method **iternum()** give number of iterations of main cycle of last calculated 
 Method **state()** must be used to get current *y*.
 
 Please see examples for better understanding.
+
+Note: C++20 standard code, that can be compiled by gcc only now, gcc version 11.0+. Clang wants too many 'typename's and doesn't want some consteval functions.
