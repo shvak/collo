@@ -20,7 +20,7 @@ constexpr num_t fixed_point(const num_t &start, Func f,
 }
 
 template <typename Func, typename Deriv, number_type num_t = double>
-constexpr num_t newton(const num_t &start, Func f, const Deriv &df,
+constexpr num_t newton(const num_t &start, Func f, Deriv df,
                        const num_t shift_from_zero = num_t{2}) {
   num_t prev{start}, curr{start - f(start) / df(start)};
   while (curr - prev + shift_from_zero != shift_from_zero) {
