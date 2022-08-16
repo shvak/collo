@@ -22,7 +22,7 @@ consteval num_t pi()
     return res;
 }*/
 
-template <number_type num_t> constexpr num_t cos(const num_t &x) {
+template <number_type num_t> constexpr num_t cos(num_t x) {
   num_t res{1.0}, x2{x * x}, corr{-x2 / 2.0};
   for (std::size_t n = 2; res + corr != res and corr + num_t{1.0} != num_t{1.0};
        ++n) {
