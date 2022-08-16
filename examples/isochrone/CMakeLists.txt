@@ -4,7 +4,7 @@ find_package(fmt REQUIRED)
 
 add_executable(isochrone isochrone.cpp)
 target_compile_features(isochrone PRIVATE cxx_std_20)
-target_include_directories(isochrone PRIVATE ${CMAKE_SOURCE_DIR}/include ${EIGEN3_INCLUDE_DIRS})
+target_include_directories(isochrone PRIVATE ${COLLO_INCLUDE_DIR} ${EIGEN3_INCLUDE_DIRS})
 target_link_libraries(isochrone PRIVATE fmt::fmt)
 
 add_custom_command(TARGET isochrone POST_BUILD

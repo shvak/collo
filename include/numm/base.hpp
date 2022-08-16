@@ -24,7 +24,8 @@ consteval num_t pi()
 
 template <number_type num_t> constexpr num_t cos(const num_t &x) {
   num_t res{1.0}, x2{x * x}, corr{-x2 / 2.0};
-  for (std::size_t n = 2; res + corr != res; ++n) {
+  for (std::size_t n = 2; res + corr != res and corr + num_t{1.0} != num_t{1.0};
+       ++n) {
     res += corr;
     corr /= (2 * n) * (2 * n - 1);
     corr *= -x2;

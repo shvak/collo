@@ -7,6 +7,8 @@ set(version ${major_version}.${minor_version}.${patch_version})
 
 project(collo VERSION ${version} DESCRIPTION "Header-only library collo: collocation integrator for ODEs" HOMEPAGE_URL "https://github.com/shvak/collo" LANGUAGES CXX)
 
+set(COLLO_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
 find_package(Eigen3 3.4 REQUIRED)
 
 add_library(collo INTERFACE)
@@ -14,8 +16,8 @@ add_library(collo INTERFACE)
 target_compile_features(collo INTERFACE cxx_std_20)
 target_link_libraries(collo INTERFACE Eigen)
 target_include_directories(collo INTERFACE
-  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+  $<BUILD_INTERFACE:${COLLO_INCLUDE_DIR}>
+  # $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
 include(GNUInstallDirs)
@@ -39,3 +41,9 @@ install(DIRECTORY include TYPE INCLUDE)
 
 add_subdirectory(examples)
 
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+  include(CTest)
+  if(BUILD_TESTING)
+    add_subdirectory(tests)
+  endif()
+endif()
