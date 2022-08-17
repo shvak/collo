@@ -4,14 +4,20 @@
 #include <doctest/doctest.h>
 #include <numbers>
 
-auto pi = std::numbers::pi_v<double>;
-
 TEST_CASE("numm/base.hpp: cos(x)") {
-  SUBCASE("x=0") { CHECK(numm::cos(0.0) + 1.0 == 2.0); }
-  SUBCASE("x=pi") { CHECK(numm::cos(pi) - 1.0 == -2.0); }
-  SUBCASE("x=-pi") { CHECK(numm::cos(-pi) - 1.0 == -2.0); }
-  SUBCASE("x=pi/2") { CHECK(numm::cos(pi / 2) + 1.0 == 1.0); }
-  SUBCASE("x=-pi/2") { CHECK(numm::cos(-pi / 2) + 1.0 == 1.0); }
+  auto pi = std::numbers::pi_v<double>;
+
+  SUBCASE("x=0") { CHECK(numm::cos(0.0) - 1.0 == 0.0); }
+  SUBCASE("x=pi") { CHECK(numm::cos(pi) + 1.0 == 0.0); }
+  SUBCASE("x=-pi") { CHECK(numm::cos(-pi) + 1.0 == 0.0); }
+  SUBCASE("x=pi/2") {
+    auto t = numm::cos(pi / 2) + 1.0;
+    CHECK(t - 1.0 == 0.0);
+  }
+  SUBCASE("x=-pi/2") {
+    auto t = numm::cos(-pi / 2) + 1.0;
+    CHECK(t - 1.0 == 0.0);
+  }
 }
 
 TEST_CASE("numm/base.hpp: cutoff_first<n>({1, 2, 3})") {
