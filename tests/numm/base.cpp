@@ -1,6 +1,7 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "numm/base.hpp"
 #include <array>
+#include <cmath>
 #include <doctest/doctest.h>
 #include <numbers>
 
@@ -18,6 +19,15 @@ TEST_CASE("numm/base.hpp: cos(x)") {
     auto t = numm::cos(-pi / 2) + 1.0;
     CHECK(t - 1.0 == 0.0);
   }
+}
+
+//accuracy of numm::sqrt() isn't the best
+TEST_CASE("numm/base.hpp") {
+  CHECK(numm::sqrt(1.0) == 1.0);
+  auto t = numm::sqrt(2.0) - std::sqrt(2.0) + 8.0;
+  CHECK(t - 8.0 == 0.0);
+  t = numm::sqrt(4.0) - 2.0 + 32.0;
+  CHECK(t - 32.0 == 0.0);
 }
 
 TEST_CASE("numm/base.hpp: cutoff_first<n>({1, 2, 3})") {

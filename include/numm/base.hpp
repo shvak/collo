@@ -2,6 +2,7 @@
 #define NUMM_BASE_HPP
 
 #include <array>
+#include <cassert>
 #include <concepts>
 
 namespace numm {
@@ -31,6 +32,21 @@ template <number_type num_t> constexpr num_t cos(num_t x) {
     corr *= -x2;
   }
   return res;
+}
+
+template <number_type num_t> constexpr num_t sqrt(num_t x) {
+  assert(x > 0.0);
+  num_t res{1.0}, mult{1.0}, y{x - 1.0};
+  if (y > 0.0) {
+    y = 1.0 / x - 1.0;
+    mult = x;
+  }
+  num_t corr{y / 2.0};
+  for (std::size_t n = 2; res + corr != res; ++n) {
+    res += corr;
+    corr *= -(n - 1.5) / n * y;
+  }
+  return mult * res;
 }
 
 template <std::size_t k, number_type num_t, std::size_t n>
