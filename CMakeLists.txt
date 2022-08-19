@@ -43,6 +43,7 @@ install(DIRECTORY include TYPE INCLUDE)
 
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   include(CTest)
+  # set(BUILD_TESTING OFF)
   if(BUILD_TESTING)
     add_subdirectory(tests)
   endif()
