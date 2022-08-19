@@ -26,7 +26,7 @@ struct vector : public std::array<num_t, n> {
     return res;
   }
 
-  consteval base_t to_array() {
+  consteval base_t to_array() const {
     base_t res;
     for (std::size_t i = 0; i < n; ++i)
       res[i] = base_t::at(i);
@@ -54,19 +54,23 @@ struct vector : public std::array<num_t, n> {
     return res;
   }
 
-  consteval num_t l2norm() const {
+  consteval num_t squared_l2norm() const {
     num_t res{0.0};
-    for (auto x : base_t::data())
+    for (auto x : *this)
       res += x * x;
     return res;
+  }
+
+  consteval num_t l2norm() const {
+    return numm::sqrt(squared_l2norm());
   }
 
   consteval num_t norm() const { return l2norm(); }
 
   consteval vector operator+(const vector &v) const {
-    vector res;
+    vector res{*this};
     for (std::size_t i = 0; i < n; ++i)
-      res[i] = base_t::at(i) + v[i];
+      res[i] += v[i];
     return res;
   }
 
@@ -78,27 +82,34 @@ struct vector : public std::array<num_t, n> {
   }
 
   consteval vector operator-(const vector &v) const {
-    vector res;
+    vector res{*this};
     for (std::size_t i = 0; i < n; ++i)
-      res[i] = base_t::at(i) - v[i];
+      res[i] -= v[i];
     return res;
   }
 
-  consteval vector operator*(const num_t &num) const {
-    vector res;
-    for (std::size_t i = 0; i < n; ++i)
-      res[i] = base_t::at(i) * num;
+  consteval vector operator-(num_t num) const {
+    vector res{*this};
+    for (auto &x : res)
+      x -= num;
     return res;
   }
 
-  friend consteval vector operator*(const num_t &num, const vector &v) {
+  consteval vector operator*(num_t num) const {
+    vector res{*this};
+    for (auto &x : res)
+      x *= num;
+    return res;
+  }
+
+  friend consteval vector operator*(num_t num, const vector &v) {
     return v * num;
   }
 
-  consteval vector operator/(const num_t &num) const {
-    vector res;
-    for (std::size_t i = 0; i < n; ++i)
-      res[i] = base_t::at(i) / num;
+  consteval vector operator/(num_t num) const {
+    vector res{*this};
+    for (auto &x : res)
+      x /= num;
     return res;
   }
 
