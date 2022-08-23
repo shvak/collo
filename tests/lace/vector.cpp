@@ -6,12 +6,12 @@ consteval auto vector_op_nonconst() {
   lace::vector<double, 1> v{1.0};
   v[0] = 2.0;
   return v[0];
-};
+}
 
 consteval auto vector_op_const() {
   const lace::vector<double, 1> v{1.0};
   return v[0];
-};
+}
 
 TEST_CASE("lace/vector.hpp: vector::operator[]") {
   SUBCASE("nonconst") { CHECK(vector_op_nonconst() == 2.0); }
