@@ -1,7 +1,7 @@
 #ifndef LACE_MATRIX_HPP
 #define LACE_MATRIX_HPP
 
-#include <lace/vector.hpp>
+#include "lace/vector.hpp"
 #include <tuple>
 
 namespace lace {
@@ -52,10 +52,10 @@ struct square_matrix : std::array<vector<num_t, n>, n> {
 
   consteval const vec_t &row(std::size_t k) const { return base_t::at(k); }
 
-  consteval vec_t col(std::size_t k) const {
+  consteval const vec_t col(std::size_t k) const {
     vec_t res;
     for (std::size_t i = 0; i < n; ++i)
-      res[i] = base_t::at(i)[k];
+      res[i] = row(i)[k];
     return res;
   }
 
@@ -108,15 +108,14 @@ struct square_matrix : std::array<vector<num_t, n>, n> {
     return res;
   }
 
-  consteval square_matrix operator*(const num_t &num) const {
+  consteval square_matrix operator*(num_t num) const {
     square_matrix res;
     for (std::size_t i = 0; i < n; ++i)
       res[i] = row(i) * num;
     return res;
   }
 
-  friend consteval square_matrix operator*(const num_t &num,
-                                           const square_matrix &m) {
+  friend consteval square_matrix operator*(num_t num, const square_matrix &m) {
     return m * num;
   }
 
@@ -142,62 +141,58 @@ struct square_matrix : std::array<vector<num_t, n>, n> {
     return res;
   }
 
-  consteval auto PLU() const {
-    auto swap =
-        [](const square_matrix &m, std::size_t i, std::size_t j) consteval {
-      square_matrix res{m};
-      vec_t v = res.row(i);
-      res.row(i) = res.row(j);
-      res.row(j) = v;
-      return res;
-    };
-    auto subcol = [](const square_matrix &m, std::size_t i) consteval {
-      vec_t res{m.col(i)};
-      for (std::size_t k = 0; k < i; ++k)
-        res[k] = 0;
-      return res;
-    };
-    auto pivot = [](const vec_t &v) consteval {
-      std::size_t res = 0;
-      vec_t abs_v = v.abs();
-      for (std::size_t i = 0; i < n; ++i)
-        if (abs_v[res] < abs_v[i])
-          res = i;
-      return res;
-    };
-    auto anti = [](const vec_t &v, std::size_t k) consteval {
-      vec_t res = vec_t::basis(k) - v / v[k];
-      res[k] = num_t{1.0} / v[k];
-      return res;
-    };
-    auto upd =
-        [](const square_matrix &m, const vec_t &v, std::size_t k) consteval {
-      square_matrix el{identity()};
-      el.row(k) = v;
-      return m * el;
-    };
-    square_matrix E = identity();
-    square_matrix P{E}, Lt{E}, Lti{E}, U{*this}, Ui{E};
-    for (std::size_t k = 0; k < n; ++k) {
-      vec_t l = subcol(U, k);
-      std::size_t p = pivot(l);
-      if (p != k) {
-        P = swap(E, k, p) * P;
-        U = swap(U, k, p);
-      }
-      l = subcol(U, k);
-      Lt.row(k) = l;
-      vec_t li = anti(l, k);
-      Lti = upd(Lti, li, k);
-      for (std::size_t j = k + 1; j < n; ++j)
-        U.row(j) = U.row(j) + U.row(k) * li[j];
-      U.row(k) = U.row(k) / l[k];
-      Ui = upd(Ui, anti(U.row(k), k), k);
-    }
-    return std::make_tuple(P, Lt.transpose(), U, Lti.transpose(), Ui);
+  consteval square_matrix swap(std::size_t i, std::size_t j) const {
+    if (i == j)
+      return *this;
+    square_matrix res{*this};
+    auto v = res.row(i);
+    res.row(i) = res.row(j);
+    res.row(j) = v;
+    return res;
   }
 
-  consteval square_matrix inverse() const {
+  consteval std::size_t find_pivot(std::size_t k) const {
+    std::size_t p = k;
+    auto v = (*this).col(k).abs();
+    for (std::size_t i = k + 1; i < n; ++i)
+      if (v[i] > v[p])
+        p = i;
+    return p;
+  }
+
+  consteval auto PLU() const {
+    square_matrix L{identity()}, U{*this}, Li{identity()}, Uti{identity()},
+        P{identity()};
+    for (std::size_t k = 0; k < n; ++k) {
+      auto p = U.find_pivot(k);
+      P = P.swap(k, p);
+      U = U.swap(k, p);
+      Li = Li.swap(k, p);
+      Li[k][p] = Li[p][k] = num_t{0.0};
+      Li[k][k] = Li[p][p] = num_t{1.0};
+      L = L.swap(k, p);
+      L[k][p] = L[p][k] = num_t{0.0};
+      L[k][k] = L[p][p] = num_t{1.0};
+      auto d = U[k][k];
+      L[k][k] = d;
+      auto li = identity();
+      li[k][k] = num_t{1.0} / d;
+      U.row(k) = U.row(k) / d;
+      U[k][k] = num_t{1.0};
+      for (std::size_t i = k + 1; i < n; ++i) {
+        L[i][k] = U[i][k];
+        li[i][k] = -U[i][k] / d;
+        U.row(i) = U.row(i) - U.row(k) * U[i][k];
+        U[i][k] = num_t{0.0};
+      }
+      for (std::size_t i = k; i > 0; --i)
+        Uti[k][i-1] = -(Uti.row(k) * U.row(i-1));
+      Li = li * Li;
+    }
+    return std::make_tuple(P, L, U, Li, Uti.transpose());
+  }
+
+  consteval square_matrix invert() const {
     /*square_matrix im = transpose() * ( num_t{1.0} / norm_rows() / norm_cols()
     ); square_matrix E = identity(); square_matrix err = E - im * (*this);
     while( err.norm_rows() + num_t{2.0} != num_t{2.0} or err.norm_cols() +
