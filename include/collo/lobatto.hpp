@@ -24,8 +24,8 @@ template <numm::number_type num_t, std::size_t system_order,
           std::size_t method_stage, typename rhs_t, Pred p = Pred::Poly,
           std::size_t param = 3,
           typename sv_t = state_vector_t<num_t, system_order>>
-constexpr auto make_Lobatto(const sv_t &y0, num_t t0, num_t h,
-                            std::decay_t<rhs_t> rhs) {
+constexpr auto make_Lobatto(const sv_t &y0, num_t t0, num_t h, rhs_t rhs
+                            /* std::decay_t<rhs_t> rhs */) {
   return Collocation<
       num_t, std::decay_t<rhs_t>,
       Pred_Lobatto_base_t<p, num_t, system_order, method_stage, param>>(y0, t0,
