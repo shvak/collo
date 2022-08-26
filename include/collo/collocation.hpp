@@ -42,24 +42,30 @@ protected:
         numm::legendre_sh<method_stage, 1>(shifted_tn(time_nodes, shift)));
     auto base = lacev{numm::legendre_sh<method_stage, 1>(num_t{0.0})};
     auto sv_nodes_mod = sv_nodes - base;
-    /*for(auto& row : sv_nodes)
-        for(std::size_t i = 0; i <= method_stage; ++i)
-            row[i] -= base[i];*/
     return sv_nodes_mod.to_2darray();
   }
 
   consteval static auto
-  make_lsm(const std::array<num_t, method_stage> &time_nodes) {
+  make_inv_lsm(const std::array<num_t, method_stage> &time_nodes) {
     using lacem = lace::square_matrix<num_t, method_stage>;
 
     auto lsm =
         lacem::from_2darray(numm::dlegendre_sh<method_stage, 1>(time_nodes));
-    /*std::array<num_t, method_stage * method_stage> lsm{};
-    auto it = std::begin(lsm);
-    for(auto& row: numm::dlegendre_sh<method_stage>( time_nodes ))
-        it = std::copy(std::next(row.begin()), row.end(), it);*/
-    return lsm./*inverse().*/ to_1darray();
+    return lsm.invert().to_1darray();
   }
+
+  // consteval static auto
+  // make_lsm(const std::array<num_t, method_stage> &time_nodes) {
+  //   using lacem = lace::square_matrix<num_t, method_stage>;
+  //
+  //   auto lsm =
+  //       lacem::from_2darray(numm::dlegendre_sh<method_stage, 1>(time_nodes));
+  //   /*std::array<num_t, method_stage * method_stage> lsm{};
+  //   auto it = std::begin(lsm);
+  //   for(auto& row: numm::dlegendre_sh<method_stage>( time_nodes ))
+  //       it = std::copy(std::next(row.begin()), row.end(), it);*/
+  //   return lsm./*inverse().*/ to_1darray();
+  // }
 
   static sv_t shift(const sva_t &alphas) {
     using namespace Eigen::indexing;
@@ -134,10 +140,12 @@ protected:
   using vector_t = base_t::vector_t;
 
   static constexpr auto sv_nodes = base_t::make_sv_nodes(base_t::time_nodes);
-  static constexpr auto lsm = base_t::make_lsm(base_t::time_nodes);
+  // static constexpr auto lsm = base_t::make_lsm(base_t::time_nodes);
 
   static const auto &inv_lsm() {
-    static matrix_t inv_lsm = matrix_t{lsm.data()}.inverse();
+    // static matrix_t inv_lsm = matrix_t{lsm.data()}.inverse();
+    static matrix_t inv_lsm =
+        matrix_t{base_t::make_inv_lsm(base_t::time_nodes).data()};
     return inv_lsm;
   }
 
@@ -157,16 +165,6 @@ protected:
     else
       return (time_node(i) - time_node(i - 1)) * h;
   }
-
-  /*auto make_alphas(const base_t::sv_t& y, const auto& t, const auto& h, auto
-  rhs) const
-  {
-      return base_t::sva_t::Zero();
-  }
-
-  void save_alphas(const base_t::sva_t&, const base_t::sv_t&)
-  {
-  }*/
 };
 
 template <typename base_t>
