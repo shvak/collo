@@ -16,7 +16,7 @@ add_library(collo INTERFACE)
 target_compile_features(collo INTERFACE cxx_std_20)
 target_link_libraries(collo INTERFACE Eigen)
 target_include_directories(collo INTERFACE
-  $<BUILD_INTERFACE:${COLLO_INCLUDE_DIR}>
+  $<BUILD_INTERFACE:${COLLO_INCLUDE_DIR}> $<BUILD_INTERFACE:${EIGEN3_INCLUDE_DIRS}>
   # $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
