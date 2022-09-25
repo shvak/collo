@@ -39,9 +39,8 @@ install(DIRECTORY include TYPE INCLUDE)
 #    ${CMAKE_BINARY_DIR}/pkg/collo-config-version.cmake
 #    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/collo)
 
-add_subdirectory(examples)
-
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+  add_subdirectory(examples)
   include(CTest)
   # set(BUILD_TESTING OFF)
   if(BUILD_TESTING)
