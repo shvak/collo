@@ -7,6 +7,11 @@
 #include <iostream>
 #include <numbers>
 
+template <typename T>
+requires std::is_base_of_v<Eigen::DenseBase<T>, T>
+struct fmt::formatter<T> : ostream_formatter {
+};
+
 constexpr std::size_t so = 6; // system order
 constexpr std::size_t ms = 8; // method stages
 using sv_t = collo::state_vector_t<double, so>;
