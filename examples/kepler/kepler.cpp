@@ -2,6 +2,7 @@
 #include <chrono>
 #include <cmath>
 #include <collo/lobatto.hpp>
+#include <filesystem>
 #include <fmt/ostream.h>
 #include <fstream>
 #include <iostream>
@@ -42,7 +43,9 @@ struct Kepler {
 double Kepler::GM = 4 * pi * pi;
 std::size_t Kepler::cnt = 0;
 
-int main() {
+int main(int, char **argv) {
+  std::filesystem::current_path(std::filesystem::path{argv[0]}.parent_path());
+
   std::ifstream fin("start.dat");
   sv_t y0;
   fin >> y0[0] >> y0[1] >> y0[2] >> y0[3] >> y0[4] >>
