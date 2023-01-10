@@ -14,6 +14,13 @@ target_compile_features(gauss PRIVATE cxx_std_20)
 target_include_directories(gauss PRIVATE ${COLLO_INCLUDE_DIR} ${EIGEN3_INCLUDE_DIRS})
 target_link_libraries(gauss PRIVATE doctest::doctest)
 
+add_executable(collocation collocation.cpp)
+
+target_compile_features(collocation PRIVATE cxx_std_20)
+target_include_directories(collocation PRIVATE ${COLLO_INCLUDE_DIR} ${EIGEN3_INCLUDE_DIRS})
+target_link_libraries(collocation PRIVATE doctest::doctest)
+
 include(doctest)
 doctest_discover_tests(lobatto)
 doctest_discover_tests(gauss)
+doctest_discover_tests(collocation)
