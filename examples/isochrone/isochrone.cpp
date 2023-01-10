@@ -21,7 +21,7 @@ struct Isochrone {
   static double b2;
   static std::size_t cnt;
 
-  sv_t operator()(double, const auto &y) {
+  sv_t operator()(double, const auto &y) const {
     ++cnt;
     double r2 = y[0] * y[0] + y[1] * y[1];
     double r_mod = std::sqrt(r2 + b2);

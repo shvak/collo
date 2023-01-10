@@ -22,7 +22,7 @@ struct Kepler {
   static double GM;
   static std::size_t cnt;
 
-  sv_t operator()(double, const auto &y) {
+  sv_t operator()(double, const auto &y) const {
     ++cnt;
     double r2 = y[0] * y[0] + y[1] * y[1] + y[2] * y[2];
     double r = std::sqrt(r2);

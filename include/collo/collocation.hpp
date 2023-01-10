@@ -172,7 +172,7 @@ struct Predictor_Zero : protected Predictor_Base<base_t> {
 
 protected:
   auto make_alphas(const base_t::sv_t &y, const auto &t, const auto &h,
-                   auto rhs) const {
+                   const auto &rhs) const {
     return base_t::sva_t::Zero();
   }
 
@@ -184,7 +184,7 @@ struct Predictor_Simple : protected Predictor_Base<base_t> {
 
 protected:
   auto make_alphas(const base_t::sv_t &y, const auto &t, const auto &h,
-                   auto rhs) const {
+                   const auto &rhs) const {
     typename base_t::sva_t f;
     for (std::size_t i = 0; i < f.cols(); ++i)
       f.col(i) = rhs(t, y);
@@ -219,14 +219,14 @@ protected:
   using Predictor_Base<base_t>::dt;
 
   static auto euler(const base_t::sv_t &y, const auto &t, const auto &h,
-                    auto rhs) {
+                    const auto &rhs) {
     if (h == 0)
       return y;
     return (y + rhs(t, y) * h).eval();
   }
 
   auto make_alphas(const base_t::sv_t &y, const auto &t, const auto &h,
-                   auto rhs) const {
+                   const auto &rhs) const {
     typename base_t::sva_t f;
     auto yt = euler(y, t, dt(h, 0), rhs);
     f.col(0) = rhs(tp(t, h, 0), yt);
@@ -246,7 +246,7 @@ protected:
   using Predictor_Base<base_t>::dt;
 
   static auto rk4(const base_t::sv_t &y, const auto &t, const auto &h,
-                  auto rhs) {
+                  const auto &rhs) {
     if (h == 0)
       return y;
     std::decay_t<decltype(y)> k1 = rhs(t, y) * h;
@@ -257,7 +257,7 @@ protected:
   }
 
   auto make_alphas(const base_t::sv_t &y, const auto &t, const auto &h,
-                   auto rhs) const {
+                   const auto &rhs) const {
     typename base_t::sva_t f;
     auto yt = rk4(y, t, dt(h, 0), rhs);
     f.col(0) = rhs(tp(t, h, 0), yt);
@@ -290,7 +290,7 @@ protected:
   Predictor_Poly() : alphas(base_t::sva_t::Zero()), y{}, first_step{true} {}
 
   auto make_alphas(const base_t::sv_t &, const auto &t, const auto &h,
-                   auto rhs) const {
+                   const auto &rhs) const {
     if (first_step) {
       return alphas;
     }
@@ -320,7 +320,7 @@ protected:
   Predictor_BackDiff() : bdiff{} {}
 
   auto make_alphas(const base_t::sv_t &y, const auto &t, const auto &h,
-                   auto rhs) const {
+                   const auto &rhs) const {
     auto lim = bdiff.front().size();
     if (lim == 0)
       return base_t::sva_t::Zero().eval();

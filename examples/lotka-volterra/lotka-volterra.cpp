@@ -1,10 +1,10 @@
 #include <chrono>
 #include <cmath>
 #include <collo/lobatto.hpp>
+#include <filesystem>
 #include <fmt/ostream.h>
 #include <fstream>
 #include <iostream>
-#include <filesystem>
 
 template <typename T>
 requires std::is_base_of_v<Eigen::DenseBase<T>, T>
@@ -18,7 +18,7 @@ using sv_t = collo::state_vector_t<double, so>;
 struct LotkaVolterra {
   static std::size_t cnt;
 
-  sv_t operator()(double, const auto &y) {
+  sv_t operator()(double, const auto &y) const {
     ++cnt;
     return {y[0] * (2.0 - y[1]), y[1] * (y[0] - 1.0)};
   }
