@@ -19,9 +19,9 @@ target_include_directories(collo INTERFACE
   # $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
-include(GNUInstallDirs)
+# include(GNUInstallDirs)
 
-install(DIRECTORY include TYPE INCLUDE)
+# install(DIRECTORY include TYPE INCLUDE)
 #install(TARGETS collo EXPORT collo-export)
 #install(EXPORT collo-export DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/collo)
 
