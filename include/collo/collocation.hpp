@@ -201,8 +201,8 @@ template <typename base_t>
 struct Predictor_Zero : protected Predictor_Base<base_t> {
 
 protected:
-  auto make_alphas(const base_t::sv_t &y, const auto &t, const auto &h,
-                   const auto &rhs) const {
+  auto make_alphas(const base_t::sv_t &, const auto &, const auto &,
+                   const auto &) const {
     return base_t::sva_t::Zero();
   }
 
@@ -216,10 +216,12 @@ protected:
   auto make_alphas(const base_t::sv_t &y, const auto &t, const auto &h,
                    const auto &rhs) const {
     typename base_t::sva_t f;
-    for (std::size_t i = 0; i < f.cols(); ++i)
+    for (std::size_t i = 0; i < base_t::sva_t::ColsAtCompileTime; ++i)
       f.col(i) = rhs(t, y);
-    return (f * base_t::inv_lsm() * h).eval();
+    return (f * Predictor_Base<base_t>::inv_lsm() * h).eval();
   }
+
+  void save_alphas(const base_t::sva_t &, const base_t::sv_t &) {}
 };
 
 template <typename base_t>
@@ -260,12 +262,14 @@ protected:
     typename base_t::sva_t f;
     auto yt = euler(y, t, dt(h, 0), rhs);
     f.col(0) = rhs(tp(t, h, 0), yt);
-    for (std::size_t i = 1; i < f.cols(); ++i) {
+    for (std::size_t i = 1; i < base_t::sva_t::ColsAtCompileTime; ++i) {
       yt = euler(yt, tp(t, h, i - 1), dt(h, i), rhs);
       f.col(i) = rhs(tp(t, h, i), yt);
     }
     return (f * Predictor_Base<base_t>::inv_lsm() * h).eval();
   }
+
+  void save_alphas(const base_t::sva_t &, const base_t::sv_t &) {}
 };
 
 template <typename base_t>
@@ -291,12 +295,14 @@ protected:
     typename base_t::sva_t f;
     auto yt = rk4(y, t, dt(h, 0), rhs);
     f.col(0) = rhs(tp(t, h, 0), yt);
-    for (std::size_t i = 1; i < f.cols(); ++i) {
+    for (std::size_t i = 1; i < base_t::sva_t::ColsAtCompileTime; ++i) {
       yt = rk4(yt, tp(t, h, i - 1), dt(h, i), rhs);
       f.col(i) = rhs(tp(t, h, i), yt);
     }
     return (f * Predictor_Base<base_t>::inv_lsm() * h).eval();
   }
+
+  void save_alphas(const base_t::sva_t &, const base_t::sv_t &) {}
 };
 
 template <typename base_t>
@@ -358,15 +364,15 @@ protected:
     for (std::size_t i = 1; i < lim; ++i)
       zs += bdiff[i].front();
     typename base_t::sva_t f;
-    for (std::size_t i = 0; i < f.cols(); ++i)
+    for (std::size_t i = 0; i < base_t::sva_t::ColsAtCompileTime; ++i)
       f.col(i) = rhs(tp(t, h, i), y + zs.col(i));
     return (f * Predictor_Base<base_t>::inv_lsm() * h).eval();
   }
 
   void save_alphas(const base_t::sva_t &alphas, const base_t::sv_t &) {
     typename base_t::sva_t z;
-    for (std::size_t i = 0; i < z.cols(); ++i)
-      z.col(i) = alphas * base_t::sv_node(i);
+    for (std::size_t i = 0; i < base_t::sva_t::ColsAtCompileTime; ++i)
+      z.col(i) = alphas * Predictor_Base<base_t>::sv_node(i);
     bdiff.front().push_front(z);
     std::size_t lim = bdiff.front().size();
     for (std::size_t i = 1; i < std::min(lim, k); ++i)
