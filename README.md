@@ -17,7 +17,8 @@ Methods of integrator do a job. Use **do_step()** for calculations and use **ste
 Method **steps()** give number of calculated steps.<br>
 Method **time()** allow to get current timepoint.<br>
 Method **iternum()** give number of iterations of main cycle of last calculated step.<br>
-Method **state()** must be used to get current *y*.
+Method **state()** can be used to get current *y*.<br>
+Method **force()** can be used to get access to *f* and change it if needed.
 
 Please see examples for better understanding.
 

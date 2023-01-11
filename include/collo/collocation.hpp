@@ -109,6 +109,10 @@ public:
 
   auto steps() const { return steps_num; }
 
+  const rhs_t &force() const { return rhs; }
+
+  rhs_t &force() { return rhs; }
+
   Collocation &do_step() {
     iter_num = 0;
     num_t dist;
