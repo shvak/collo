@@ -113,7 +113,8 @@ public:
 
   rhs_t &force() { return rhs; }
 
-  Collocation &do_step() {
+  template <typename rhs_type = rhs_t>
+  requires std::invocable<rhs_type, num_t, sv_t> Collocation &do_step() {
     iter_num = 0;
     num_t dist;
 
@@ -124,6 +125,31 @@ public:
       sva_t f;
       for (std::size_t i = 0; i < sva_t::ColsAtCompileTime; ++i)
         f.col(i) = rhs(time_point(i), sv_point(i, alphas));
+      alphas = f * base_t::inv_lsm() * h;
+      dist = base_t::distance(alphas, alphas_prev);
+      ++iter_num;
+    } while (dist + num_t{2.0} != num_t{2.0} && iter_num < 100);
+
+    base_t::save_alphas(alphas, y);
+
+    y += base_t::shift(alphas);
+    ++steps_num;
+    return *this;
+  }
+
+  template <typename rhs_type = rhs_t>
+  requires std::invocable<rhs_type, num_t, std::size_t, sv_t> Collocation &do_step() {
+    iter_num = 0;
+    num_t dist;
+
+    sva_t alphas = base_t::make_alphas(y, time(), h, [&](num_t t, const auto &y){
+        return rhs(t, 0, y);});
+
+    do {
+      auto alphas_prev = alphas;
+      sva_t f;
+      for (std::size_t i = 0; i < sva_t::ColsAtCompileTime; ++i)
+        f.col(i) = rhs(time(), i, sv_point(i, alphas));
       alphas = f * base_t::inv_lsm() * h;
       dist = base_t::distance(alphas, alphas_prev);
       ++iter_num;
