@@ -24,20 +24,21 @@ protected:
   using lacem = lace::square_matrix<num_t, method_stage>;
 
   consteval static auto
-  shifted_tn(const std::array<num_t, method_stage> &time_nodes, int shift = 0) {
+  shifted_tn(const std::array<num_t, method_stage> &time_nodes,
+             num_t shift = 0.0) {
     if (shift == 0)
       return time_nodes;
     auto tn = lacev{time_nodes};
-    auto tn_sh = tn + static_cast<num_t>(shift);
+    auto tn_sh = tn + shift;
     return tn_sh.to_array();
   }
 
   consteval static auto
   make_sv_nodes(const std::array<num_t, method_stage> &time_nodes,
-                int shift = 0) {
+                num_t arg = 0.0, num_t shift = 0.0) {
     auto sv_nodes = lacem::from_2darray(
         numm::legendre_sh<method_stage, 1>(shifted_tn(time_nodes, shift)));
-    auto base = lacev{numm::legendre_sh<method_stage, 1>(num_t{0.0})};
+    auto base = lacev{numm::legendre_sh<method_stage, 1>(arg)};
     auto sv_nodes_mod = sv_nodes - base;
     return sv_nodes_mod.to_2darray();
   }
@@ -49,7 +50,7 @@ protected:
     return lsm.invert().to_1darray();
   }
 
-  static sv_t shift(const sva_t &alphas) {
+  static sv_t result(const sva_t &alphas) {
     using namespace Eigen::indexing;
     return alphas(all, seq(0, last, fix<2>)).eval().rowwise().sum() * 2;
   }
@@ -67,8 +68,8 @@ private:
   using base_t::distance;
   using base_t::inv_lsm;
   using base_t::make_alphas;
+  using base_t::result;
   using base_t::save_alphas;
-  using base_t::shift;
 
   sv_t y;
   num_t t0;
@@ -76,6 +77,7 @@ private:
   std::size_t steps_num;
   rhs_t rhs;
   std::size_t iter_num;
+  sva_t alphas;
 
   auto time_point(std::size_t i) const { return base_t::tp(time(), h, i); }
 
@@ -104,7 +106,7 @@ public:
     iter_num = 0;
     num_t dist;
 
-    sva_t alphas = make_alphas(y, time(), h, rhs);
+    alphas = make_alphas(alphas, y, time(), h, rhs);
 
     do {
       auto alphas_prev = alphas;
@@ -116,9 +118,9 @@ public:
       ++iter_num;
     } while (dist + num_t{2.0} != num_t{2.0} && iter_num < 100);
 
-    save_alphas(alphas, y);
+    save_alphas(alphas);
 
-    y += shift(alphas);
+    y += result(alphas);
     ++steps_num;
     return *this;
   }
@@ -129,8 +131,8 @@ public:
     iter_num = 0;
     num_t dist;
 
-    sva_t alphas = make_alphas(
-        y, time(), h, [&](num_t t, const auto &y) { return rhs(t, 0, y); });
+    alphas = make_alphas(alphas, y, time(), h,
+                         [&](num_t t, const auto &y) { return rhs(t, 0, y); });
 
     do {
       auto alphas_prev = alphas;
@@ -142,9 +144,9 @@ public:
       ++iter_num;
     } while (dist + num_t{2.0} != num_t{2.0} && iter_num < 100);
 
-    save_alphas(alphas, y);
+    save_alphas(alphas);
 
-    y += shift(alphas);
+    y += result(alphas);
     ++steps_num;
     return *this;
   }
@@ -189,12 +191,12 @@ protected:
   using sv_t = base_t::sv_t;
   using sva_t = base_t::sva_t;
 
-  auto make_alphas(const sv_t &, const auto &, const auto &,
+  auto make_alphas(const sva_t &, const sv_t &, const auto &, const auto &,
                    const auto &) const {
     return sva_t::Zero();
   }
 
-  void save_alphas(const sva_t &, const sv_t &) {}
+  void save_alphas(const sva_t &) {}
 };
 
 template <typename base_t>
@@ -204,7 +206,7 @@ protected:
   using sva_t = base_t::sva_t;
   using Predictor_Base<base_t>::inv_lsm;
 
-  auto make_alphas(const sv_t &y, const auto &t, const auto &h,
+  auto make_alphas(const sva_t &, const sv_t &y, const auto &t, const auto &h,
                    const auto &rhs) const {
     sva_t f;
     for (std::size_t i = 0; i < sva_t::ColsAtCompileTime; ++i)
@@ -212,27 +214,21 @@ protected:
     return (f * inv_lsm() * h).eval();
   }
 
-  void save_alphas(const sva_t &, const sv_t &) {}
+  void save_alphas(const sva_t &) {}
 };
 
 template <typename base_t>
 struct Predictor_PrevStep : protected Predictor_Base<base_t> {
-private:
-  base_t::sva_t alphas;
-
 protected:
   using sv_t = base_t::sv_t;
   using sva_t = base_t::sva_t;
 
-  Predictor_PrevStep() : alphas(sva_t::Zero()) {}
-
-  auto make_alphas(const sv_t &, const auto &, const auto &, auto) const {
+  auto make_alphas(const sva_t &alphas, const sv_t &, const auto &,
+                   const auto &, auto) const {
     return alphas;
   }
 
-  void save_alphas(const sva_t &new_alphas, const sv_t &) {
-    alphas = new_alphas;
-  }
+  void save_alphas(const sva_t &) {}
 };
 
 template <typename base_t>
@@ -252,7 +248,7 @@ protected:
   using Predictor_Base<base_t>::dt;
   using Predictor_Base<base_t>::inv_lsm;
 
-  auto make_alphas(const sv_t &y, const auto &t, const auto &h,
+  auto make_alphas(const sva_t &, const sv_t &y, const auto &t, const auto &h,
                    const auto &rhs) const {
     sva_t f;
     auto yt = euler(y, t, dt(h, 0), rhs);
@@ -264,7 +260,7 @@ protected:
     return (f * inv_lsm() * h).eval();
   }
 
-  void save_alphas(const sva_t &, const sv_t &) {}
+  void save_alphas(const sva_t &) {}
 };
 
 template <typename base_t>
@@ -288,7 +284,7 @@ protected:
   using Predictor_Base<base_t>::dt;
   using Predictor_Base<base_t>::inv_lsm;
 
-  auto make_alphas(const sv_t &y, const auto &t, const auto &h,
+  auto make_alphas(const sva_t &, const sv_t &y, const auto &t, const auto &h,
                    const auto &rhs) const {
     sva_t f;
     auto yt = rk4(y, t, dt(h, 0), rhs);
@@ -300,51 +296,35 @@ protected:
     return (f * inv_lsm() * h).eval();
   }
 
-  void save_alphas(const sva_t &, const sv_t &) {}
+  void save_alphas(const sva_t &) {}
 };
 
-template <typename base_t>
+template <typename base_t, typename num_t>
 struct Predictor_Poly : protected Predictor_Base<base_t> {
-protected:
-  using sv_t = base_t::sv_t;
-  using sva_t = base_t::sva_t;
-  using vector_t = base_t::vector_t;
-
 private:
-  sva_t alphas;
-  sv_t y;
-  bool first_step;
-
   constexpr static auto pred_sv_nodes =
-      base_t::make_sv_nodes(base_t::time_nodes, 1);
+      base_t::make_sv_nodes(base_t::time_nodes, num_t{1.0}, num_t{1.0});
 
   static auto pred_sv_node(std::size_t i) {
     return Eigen::Map<const vector_t>(pred_sv_nodes[i].data());
   }
 
 protected:
+  using sv_t = base_t::sv_t;
+  using sva_t = base_t::sva_t;
+  using vector_t = base_t::vector_t;
   using Predictor_Base<base_t>::tp;
   using Predictor_Base<base_t>::inv_lsm;
 
-  Predictor_Poly() : alphas(sva_t::Zero()), y{}, first_step{true} {}
-
-  auto make_alphas(const sv_t &, const auto &t, const auto &h,
-                   const auto &rhs) const {
-    if (first_step) {
-      return alphas;
-    }
+  auto make_alphas(const sva_t &alphas, const sv_t &y, const auto &t,
+                   const auto &h, const auto &rhs) const {
     sva_t f;
     for (std::size_t i = 0; i < sva_t::ColsAtCompileTime; ++i)
       f.col(i) = rhs(tp(t, h, i), y + alphas * pred_sv_node(i));
     return (f * inv_lsm() * h).eval();
   }
 
-  void save_alphas(const sva_t &new_alphas, const sv_t &new_y) {
-    alphas = new_alphas;
-    y = new_y;
-    if (first_step)
-      first_step = false;
-  }
+  void save_alphas(const sva_t &) {}
 };
 
 template <typename base_t, std::size_t k>
@@ -363,7 +343,7 @@ protected:
 
   Predictor_BackDiff() : bdiff{} {}
 
-  auto make_alphas(const sv_t &y, const auto &t, const auto &h,
+  auto make_alphas(const sva_t &, const sv_t &y, const auto &t, const auto &h,
                    const auto &rhs) const {
     auto lim = bdiff.front().size();
     if (lim == 0)
@@ -377,7 +357,7 @@ protected:
     return (f * inv_lsm() * h).eval();
   }
 
-  void save_alphas(const sva_t &alphas, const sv_t &) {
+  void save_alphas(const sva_t &alphas) {
     sva_t z;
     for (std::size_t i = 0; i < sva_t::ColsAtCompileTime; ++i)
       z.col(i) = alphas * sv_node(i);
@@ -417,7 +397,7 @@ struct Pred_select {
                       std::conditional_t<
                           p == Pred::Poly,
                           Predictor_Poly<
-                              base_t<num_t, system_order, method_stage>>,
+                              base_t<num_t, system_order, method_stage>, num_t>,
                           std::conditional_t<
                               p == Pred::BackDiff,
                               Predictor_BackDiff<
