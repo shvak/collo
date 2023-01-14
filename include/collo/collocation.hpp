@@ -107,7 +107,7 @@ private:
 
   auto time_point(std::size_t i) const { return tp(time(), h, i); }
 
-  auto sv_point(std::size_t i) const { return y + alphas * node_basis_left(i); }
+  sv_t sv_point(std::size_t i) const { return y + alphas * node_basis_left(i); }
 
 public:
   Collocation(const sv_t &y0, const num_t &t0_, const num_t &h_, rhs_t rhs_)
