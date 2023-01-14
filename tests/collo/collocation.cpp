@@ -50,6 +50,14 @@ TEST_CASE("collo/collocation.hpp: different predictors") {
   CHECK(l_backdiff.steps() == 10);
 }
 
+TEST_CASE("collo/collocation.hpp: poly()") {
+  auto l =
+      collo::make_Lobatto<double, 2, 2, test_rhs>(sv_t{1.0, 0.0}, 0.0, 1.0);
+  l.do_step();
+  CHECK(l.poly(0.0) == sv_t{1.0, 0.0});
+  CHECK(l.poly(1.0) == l.state());
+}
+
 struct copy_test_rhs {
   static std::size_t cnt;
 

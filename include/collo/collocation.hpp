@@ -50,6 +50,12 @@ protected:
     return lsm.invert().to_1darray();
   }
 
+  static auto basis(num_t tau) {
+    return (sv_t{numm::legendre_sh<method_stage, 1>(tau).data()} -
+            sv_t{numm::legendre_sh<method_stage, 1>(num_t{1.0}).data()})
+        .eval();
+  }
+
   static sv_t result(const sva_t &alphas) {
     using namespace Eigen::indexing;
     return alphas(all, seq(0, last, fix<2>)).eval().rowwise().sum() * 2;
@@ -65,6 +71,7 @@ struct Collocation : protected base_t {
 private:
   using sv_t = base_t::sv_t;
   using sva_t = base_t::sva_t;
+  using base_t::basis;
   using base_t::distance;
   using base_t::inv_lsm;
   using base_t::make_alphas;
@@ -103,6 +110,8 @@ public:
   const rhs_t &force() const { return rhs; }
 
   rhs_t &force() { return rhs; }
+
+  sv_t poly(num_t tau) const { return (y + alphas * basis(tau)).eval(); }
 
   template <typename rhs_type = rhs_t>
   requires std::invocable<rhs_type, num_t, sv_t> Collocation &do_step() {
