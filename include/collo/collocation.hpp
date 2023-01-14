@@ -70,6 +70,8 @@ private:
   using base_t::make_alphas;
   using base_t::result;
   using base_t::save_alphas;
+  using base_t::sv_node;
+  using base_t::tp;
 
   sv_t y;
   num_t t0;
@@ -79,15 +81,16 @@ private:
   std::size_t iter_num;
   sva_t alphas;
 
-  auto time_point(std::size_t i) const { return base_t::tp(time(), h, i); }
+  auto time_point(std::size_t i) const { return tp(time(), h, i); }
 
   auto sv_point(std::size_t i, const sva_t &alphas) const {
-    return y + alphas * base_t::sv_node(i);
+    return y + alphas * sv_node(i);
   }
 
 public:
   Collocation(const sv_t &y0, const num_t &t0_, const num_t &h_, rhs_t rhs_)
-      : y{y0}, t0{t0_}, h{h_}, steps_num{0}, rhs{rhs_}, iter_num{0} {}
+      : y{y0}, t0{t0_}, h{h_}, steps_num{0}, rhs{rhs_}, iter_num{0},
+        alphas{sva_t::Zero()} {}
 
   auto time() const { return t0 + steps_num * h; }
 
