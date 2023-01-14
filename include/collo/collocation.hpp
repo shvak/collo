@@ -91,6 +91,7 @@ private:
   using base_t::inv_lsm;
   using base_t::make_alphas;
   using base_t::node_basis_left;
+  using base_t::node_basis_right;
   using base_t::result;
   using base_t::rhs_invoke;
   using base_t::save_alphas;
