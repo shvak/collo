@@ -34,13 +34,13 @@ protected:
   }
 
   consteval static auto
-  make_sv_nodes(const std::array<num_t, method_stage> &time_nodes,
-                num_t arg = 0.0, num_t shift = 0.0) {
-    auto sv_nodes = lacem::from_2darray(
+  make_nodes_basis(const std::array<num_t, method_stage> &time_nodes,
+                   num_t arg = 0.0, num_t shift = 0.0) {
+    auto nodes_basis = lacem::from_2darray(
         numm::legendre_sh<method_stage, 1>(shifted_tn(time_nodes, shift)));
-    auto base = lacev{numm::legendre_sh<method_stage, 1>(arg)};
-    auto sv_nodes_mod = sv_nodes - base;
-    return sv_nodes_mod.to_2darray();
+    auto base_sv_basis = lacev{numm::legendre_sh<method_stage, 1>(arg)};
+    auto nodes_basis_mod = nodes_basis - base_sv_basis;
+    return nodes_basis_mod.to_2darray();
   }
 
   consteval static auto
@@ -50,10 +50,9 @@ protected:
     return lsm.invert().to_1darray();
   }
 
-  static auto basis(num_t tau) {
-    return (sv_t{numm::legendre_sh<method_stage, 1>(tau).data()} -
-            sv_t{numm::legendre_sh<method_stage, 1>(num_t{1.0}).data()})
-        .eval();
+  static sv_t basis(num_t tau) {
+    return sv_t{numm::legendre_sh<method_stage, 1>(tau).data()} -
+           sv_t{numm::legendre_sh<method_stage, 1>(num_t{1.0}).data()};
   }
 
   static sv_t result(const sva_t &alphas) {
@@ -75,9 +74,9 @@ private:
   using base_t::distance;
   using base_t::inv_lsm;
   using base_t::make_alphas;
+  using base_t::node_basis;
   using base_t::result;
   using base_t::save_alphas;
-  using base_t::sv_node;
   using base_t::tp;
 
   sv_t y;
@@ -91,7 +90,7 @@ private:
   auto time_point(std::size_t i) const { return tp(time(), h, i); }
 
   auto sv_point(std::size_t i, const sva_t &alphas) const {
-    return y + alphas * sv_node(i);
+    return y + alphas * node_basis(i);
   }
 
 public:
@@ -170,8 +169,6 @@ private:
   using vector_t = base_t::vector_t;
 
 protected:
-  static constexpr auto sv_nodes = base_t::make_sv_nodes(base_t::time_nodes);
-
   static const auto &inv_lsm() {
     static matrix_t inv_lsm = matrix_t{
         base_t::make_inv_lsm(base_t::time_nodes)
@@ -179,8 +176,10 @@ protected:
     return inv_lsm;
   }
 
-  static auto sv_node(std::size_t i) {
-    return Eigen::Map<const vector_t>(sv_nodes[i].data());
+  static auto node_basis(std::size_t i) {
+    static constexpr auto nodes_basis =
+        base_t::make_nodes_basis(base_t::time_nodes);
+    return Eigen::Map<const vector_t>(nodes_basis[i].data());
   }
 
   static auto time_node(std::size_t i) { return base_t::time_nodes[i]; }
@@ -314,11 +313,10 @@ protected:
 template <typename base_t, typename num_t>
 struct Predictor_Poly : protected Predictor_Base<base_t> {
 private:
-  constexpr static auto pred_sv_nodes =
-      base_t::make_sv_nodes(base_t::time_nodes, num_t{1.0}, num_t{1.0});
-
-  static auto pred_sv_node(std::size_t i) {
-    return Eigen::Map<const vector_t>(pred_sv_nodes[i].data());
+  static auto pred_node_basis(std::size_t i) {
+    constexpr static auto pred_nodes_basis =
+        base_t::make_nodes_basis(base_t::time_nodes, num_t{1.0}, num_t{1.0});
+    return Eigen::Map<const vector_t>(pred_nodes_basis[i].data());
   }
 
 protected:
@@ -332,7 +330,7 @@ protected:
                    const auto &h, const auto &rhs) const {
     sva_t f;
     for (std::size_t i = 0; i < sva_t::ColsAtCompileTime; ++i)
-      f.col(i) = rhs(tp(t, h, i), y + alphas * pred_sv_node(i));
+      f.col(i) = rhs(tp(t, h, i), y + alphas * pred_node_basis(i));
     return (f * inv_lsm() * h).eval();
   }
 
@@ -351,7 +349,7 @@ private:
 protected:
   using Predictor_Base<base_t>::tp;
   using Predictor_Base<base_t>::inv_lsm;
-  using Predictor_Base<base_t>::sv_node;
+  using Predictor_Base<base_t>::node_basis;
 
   Predictor_BackDiff() : bdiff{} {}
 
@@ -372,7 +370,7 @@ protected:
   void save_alphas(const sva_t &alphas) {
     sva_t z;
     for (std::size_t i = 0; i < sva_t::ColsAtCompileTime; ++i)
-      z.col(i) = alphas * sv_node(i);
+      z.col(i) = alphas * node_basis(i);
     bdiff.front().push_front(z);
     std::size_t lim = bdiff.front().size();
     for (std::size_t i = 1; i < std::min(lim, k); ++i)
