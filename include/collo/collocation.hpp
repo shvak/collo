@@ -35,13 +35,28 @@ protected:
   }
 
   consteval static auto
-  make_nodes_basis(const std::array<num_t, method_stage> &time_nodes,
-                   num_t arg = 0.0, num_t shift = 0.0) {
+  make_nodes_basis(const std::array<num_t, method_stage> &time_nodes, num_t arg,
+                   num_t shift) {
     auto nodes_basis = lacem::from_2darray(
         numm::legendre_sh<method_stage, 1>(shifted_tn(time_nodes, shift)));
     auto base_sv_basis = lacev{numm::legendre_sh<method_stage, 1>(arg)};
     auto nodes_basis_mod = nodes_basis - base_sv_basis;
     return nodes_basis_mod.to_2darray();
+  }
+
+  consteval static auto
+  make_nodes_basis_left(const std::array<num_t, method_stage> &time_nodes) {
+    return make_nodes_basis(time_nodes, 0.0, 0.0);
+  }
+
+  consteval static auto
+  make_nodes_basis_right(const std::array<num_t, method_stage> &time_nodes) {
+    return make_nodes_basis(time_nodes, 1.0, 0.0);
+  }
+
+  consteval static auto make_pred_nodes_basis_right(
+      const std::array<num_t, method_stage> &time_nodes) {
+    return make_nodes_basis(time_nodes, 1.0, 1.0);
   }
 
   consteval static auto
@@ -51,7 +66,7 @@ protected:
     return lsm.invert().to_1darray();
   }
 
-  static sv_t basis(num_t tau) {
+  static sv_t basis_left(num_t tau) {
     return sv_t{numm::legendre_sh<method_stage, 1>(tau).data()} -
            sv_t{numm::legendre_sh<method_stage, 1>(num_t{1.0}).data()};
   }
@@ -71,11 +86,11 @@ struct Collocation : protected base_t {
 private:
   using sv_t = base_t::sv_t;
   using sva_t = base_t::sva_t;
-  using base_t::basis;
+  using base_t::basis_left;
   using base_t::distance;
   using base_t::inv_lsm;
   using base_t::make_alphas;
-  using base_t::node_basis;
+  using base_t::node_basis_left;
   using base_t::result;
   using base_t::rhs_invoke;
   using base_t::save_alphas;
@@ -91,9 +106,7 @@ private:
 
   auto time_point(std::size_t i) const { return tp(time(), h, i); }
 
-  auto sv_point(std::size_t i, const sva_t &alphas) const {
-    return y + alphas * node_basis(i);
-  }
+  auto sv_point(std::size_t i) const { return y + alphas * node_basis_left(i); }
 
 public:
   Collocation(const sv_t &y0, const num_t &t0_, const num_t &h_, rhs_t rhs_)
@@ -112,7 +125,11 @@ public:
 
   rhs_t &force() { return rhs; }
 
-  sv_t poly(num_t tau) const { return y + alphas * basis(tau); }
+  sv_t poly(num_t tau) const { return y + alphas * basis_left(tau); }
+
+  sv_t poly_node(std::size_t i) const {
+    return y + alphas * node_basis_right(i);
+  }
 
   Collocation &do_step() {
     iter_num = 0;
@@ -124,8 +141,8 @@ public:
       auto alphas_prev = alphas;
       sva_t f;
       for (std::size_t i = 0; i < sva_t::ColsAtCompileTime; ++i)
-        f.col(i) = rhs_invoke(rhs, time_point(i), std::make_optional(i),
-                              sv_point(i, alphas));
+        f.col(i) =
+            rhs_invoke(rhs, time_point(i), std::make_optional(i), sv_point(i));
       alphas = f * inv_lsm() * h;
       dist = distance(alphas, alphas_prev);
       ++iter_num;
@@ -152,9 +169,15 @@ protected:
     return inv_lsm;
   }
 
-  static auto node_basis(std::size_t i) {
+  static auto node_basis_left(std::size_t i) {
     static constexpr auto nodes_basis =
-        base_t::make_nodes_basis(base_t::time_nodes);
+        base_t::make_nodes_basis_left(base_t::time_nodes);
+    return Eigen::Map<const vector_t>(nodes_basis[i].data());
+  }
+
+  static auto node_basis_right(std::size_t i) {
+    constexpr static auto nodes_basis =
+        base_t::make_nodes_basis_right(base_t::time_nodes);
     return Eigen::Map<const vector_t>(nodes_basis[i].data());
   }
 
@@ -305,15 +328,8 @@ protected:
   void save_alphas(const sva_t &) {}
 };
 
-template <typename base_t, typename num_t>
+template <typename base_t>
 struct Predictor_Poly : protected Predictor_Base<base_t> {
-private:
-  static auto pred_node_basis(std::size_t i) {
-    constexpr static auto pred_nodes_basis =
-        base_t::make_nodes_basis(base_t::time_nodes, num_t{1.0}, num_t{1.0});
-    return Eigen::Map<const vector_t>(pred_nodes_basis[i].data());
-  }
-
 protected:
   using sv_t = base_t::sv_t;
   using sva_t = base_t::sva_t;
@@ -322,12 +338,20 @@ protected:
   using Predictor_Base<base_t>::inv_lsm;
   using Predictor_Base<base_t>::rhs_invoke;
 
+private:
+  static auto pred_node_basis_right(std::size_t i) {
+    constexpr static auto nodes_basis =
+        base_t::make_pred_nodes_basis_right(base_t::time_nodes);
+    return Eigen::Map<const vector_t>(nodes_basis[i].data());
+  }
+
+protected:
   sva_t make_alphas(const sva_t &alphas, const sv_t &y, auto t, auto h,
                     const auto &rhs) const {
     sva_t f;
     for (std::size_t i = 0; i < sva_t::ColsAtCompileTime; ++i)
       f.col(i) = rhs_invoke(rhs, tp(t, h, i), std::make_optional(i),
-                            y + alphas * pred_node_basis(i));
+                            y + alphas * pred_node_basis_right(i));
     return f * inv_lsm() * h;
   }
 
@@ -346,7 +370,7 @@ private:
 protected:
   using Predictor_Base<base_t>::tp;
   using Predictor_Base<base_t>::inv_lsm;
-  using Predictor_Base<base_t>::node_basis;
+  using Predictor_Base<base_t>::node_basis_left;
   using Predictor_Base<base_t>::rhs_invoke;
 
   Predictor_BackDiff() : bdiff{} {}
@@ -369,7 +393,7 @@ protected:
   void save_alphas(const sva_t &alphas) {
     sva_t z;
     for (std::size_t i = 0; i < sva_t::ColsAtCompileTime; ++i)
-      z.col(i) = alphas * node_basis(i);
+      z.col(i) = alphas * node_basis_left(i);
     bdiff.front().push_front(z);
     std::size_t lim = bdiff.front().size();
     for (std::size_t i = 1; i < std::min(lim, k); ++i)
@@ -406,7 +430,7 @@ struct Pred_select {
                       std::conditional_t<
                           p == Pred::Poly,
                           Predictor_Poly<
-                              base_t<num_t, system_order, method_stage>, num_t>,
+                              base_t<num_t, system_order, method_stage>>,
                           std::conditional_t<
                               p == Pred::BackDiff,
                               Predictor_BackDiff<
