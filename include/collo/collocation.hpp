@@ -5,6 +5,7 @@
 #include <deque>
 #include <lace/matrix.hpp>
 #include <numm/legendre.hpp>
+#include <optional>
 
 namespace collo {
 
@@ -76,6 +77,7 @@ private:
   using base_t::make_alphas;
   using base_t::node_basis;
   using base_t::result;
+  using base_t::rhs_invoke;
   using base_t::save_alphas;
   using base_t::tp;
 
@@ -110,10 +112,9 @@ public:
 
   rhs_t &force() { return rhs; }
 
-  sv_t poly(num_t tau) const { return (y + alphas * basis(tau)).eval(); }
+  sv_t poly(num_t tau) const { return y + alphas * basis(tau); }
 
-  template <typename rhs_type = rhs_t>
-  requires std::invocable<rhs_type, num_t, sv_t> Collocation &do_step() {
+  Collocation &do_step() {
     iter_num = 0;
     num_t dist;
 
@@ -123,33 +124,8 @@ public:
       auto alphas_prev = alphas;
       sva_t f;
       for (std::size_t i = 0; i < sva_t::ColsAtCompileTime; ++i)
-        f.col(i) = rhs(time_point(i), sv_point(i, alphas));
-      alphas = f * inv_lsm() * h;
-      dist = distance(alphas, alphas_prev);
-      ++iter_num;
-    } while (dist + num_t{2.0} != num_t{2.0} && iter_num < 100);
-
-    save_alphas(alphas);
-
-    y += result(alphas);
-    ++steps_num;
-    return *this;
-  }
-
-  template <typename rhs_type = rhs_t>
-  requires std::invocable<rhs_type, num_t, std::size_t, sv_t> Collocation &
-  do_step() {
-    iter_num = 0;
-    num_t dist;
-
-    alphas = make_alphas(alphas, y, time(), h,
-                         [&](num_t t, const auto &y) { return rhs(t, 0, y); });
-
-    do {
-      auto alphas_prev = alphas;
-      sva_t f;
-      for (std::size_t i = 0; i < sva_t::ColsAtCompileTime; ++i)
-        f.col(i) = rhs(time_point(i), i, sv_point(i, alphas));
+        f.col(i) = rhs_invoke(rhs, time_point(i), std::make_optional(i),
+                              sv_point(i, alphas));
       alphas = f * inv_lsm() * h;
       dist = distance(alphas, alphas_prev);
       ++iter_num;
@@ -182,17 +158,27 @@ protected:
     return Eigen::Map<const vector_t>(nodes_basis[i].data());
   }
 
-  static auto time_node(std::size_t i) { return base_t::time_nodes[i]; }
-
-  static auto tp(const auto &t, const auto &h, std::size_t i) {
-    return t + time_node(i) * h;
+  constexpr static auto time_node(std::size_t i) {
+    return base_t::time_nodes[i];
   }
 
-  static auto dt(const auto &h, std::size_t i) {
+  static auto tp(auto t, auto h, std::size_t i) { return t + time_node(i) * h; }
+
+  static auto dt(auto h, std::size_t i) {
     if (i == 0)
       return time_node(0) * h;
     else
       return (time_node(i) - time_node(i - 1)) * h;
+  }
+
+  static auto rhs_invoke(const auto &rhs, auto t, std::optional<std::size_t> i,
+                         const auto &y) {
+    if constexpr (std::is_invocable_v<decltype(rhs), decltype(t),
+                                      std::optional<std::size_t>,
+                                      typename base_t::sv_t>)
+      return rhs(t, i, y);
+    else
+      return rhs(t, y);
   }
 };
 
@@ -202,7 +188,7 @@ protected:
   using sv_t = base_t::sv_t;
   using sva_t = base_t::sva_t;
 
-  auto make_alphas(const sva_t &, const sv_t &, const auto &, const auto &,
+  auto make_alphas(const sva_t &, const sv_t &, auto, auto,
                    const auto &) const {
     return sva_t::Zero();
   }
@@ -216,13 +202,14 @@ protected:
   using sv_t = base_t::sv_t;
   using sva_t = base_t::sva_t;
   using Predictor_Base<base_t>::inv_lsm;
+  using Predictor_Base<base_t>::rhs_invoke;
 
-  auto make_alphas(const sva_t &, const sv_t &y, const auto &t, const auto &h,
-                   const auto &rhs) const {
+  sva_t make_alphas(const sva_t &, const sv_t &y, auto t, auto h,
+                    const auto &rhs) const {
     sva_t f;
     for (std::size_t i = 0; i < sva_t::ColsAtCompileTime; ++i)
-      f.col(i) = rhs(t, y);
-    return (f * inv_lsm() * h).eval();
+      f.col(i) = rhs_invoke(rhs, t, std::nullopt, y);
+    return f * inv_lsm() * h;
   }
 
   void save_alphas(const sva_t &) {}
@@ -234,8 +221,8 @@ protected:
   using sv_t = base_t::sv_t;
   using sva_t = base_t::sva_t;
 
-  auto make_alphas(const sva_t &alphas, const sv_t &, const auto &,
-                   const auto &, auto) const {
+  auto make_alphas(const sva_t &alphas, const sv_t &, auto, auto,
+                   const auto &) const {
     return alphas;
   }
 
@@ -244,31 +231,34 @@ protected:
 
 template <typename base_t>
 struct Predictor_Euler : protected Predictor_Base<base_t> {
-private:
-  static auto euler(const base_t::sv_t &y, const auto &t, const auto &h,
-                    const auto &rhs) {
-    if (h == 0)
-      return y;
-    return (y + rhs(t, y) * h).eval();
-  }
-
 protected:
   using sv_t = base_t::sv_t;
   using sva_t = base_t::sva_t;
   using Predictor_Base<base_t>::tp;
   using Predictor_Base<base_t>::dt;
   using Predictor_Base<base_t>::inv_lsm;
+  using Predictor_Base<base_t>::rhs_invoke;
 
-  auto make_alphas(const sva_t &, const sv_t &y, const auto &t, const auto &h,
-                   const auto &rhs) const {
+private:
+  static sv_t euler(const base_t::sv_t &y, auto t, std::optional<std::size_t> i,
+                    auto h, const auto &rhs) {
+    if (h == 0)
+      return y;
+    return y + rhs_invoke(rhs, t, i, y) * h;
+  }
+
+protected:
+  sva_t make_alphas(const sva_t &, const sv_t &y, auto t, auto h,
+                    const auto &rhs) const {
     sva_t f;
-    auto yt = euler(y, t, dt(h, 0), rhs);
-    f.col(0) = rhs(tp(t, h, 0), yt);
+    auto yt = euler(y, t, std::nullopt, dt(h, 0), rhs);
+    f.col(0) =
+        rhs_invoke(rhs, tp(t, h, 0), std::make_optional<std::size_t>(0), yt);
     for (std::size_t i = 1; i < sva_t::ColsAtCompileTime; ++i) {
-      yt = euler(yt, tp(t, h, i - 1), dt(h, i), rhs);
-      f.col(i) = rhs(tp(t, h, i), yt);
+      yt = euler(yt, tp(t, h, i - 1), std::make_optional(i - 1), dt(h, i), rhs);
+      f.col(i) = rhs_invoke(rhs, tp(t, h, i), std::make_optional(i), yt);
     }
-    return (f * inv_lsm() * h).eval();
+    return f * inv_lsm() * h;
   }
 
   void save_alphas(const sva_t &) {}
@@ -276,35 +266,40 @@ protected:
 
 template <typename base_t>
 struct Predictor_RK4 : protected Predictor_Base<base_t> {
-private:
-  static auto rk4(const base_t::sv_t &y, const auto &t, const auto &h,
-                  const auto &rhs) {
-    if (h == 0)
-      return y;
-    std::decay_t<decltype(y)> k1 = rhs(t, y) * h;
-    std::decay_t<decltype(y)> k2 = rhs(t + h / 2, y + k1 / 2) * h;
-    std::decay_t<decltype(y)> k3 = rhs(t + h / 2, y + k2 / 2) * h;
-    std::decay_t<decltype(y)> k4 = rhs(t + h, y + k3) * h;
-    return (y + k1 / 6 + k2 / 3 + k3 / 3 + k4 / 6).eval();
-  }
-
 protected:
   using sv_t = base_t::sv_t;
   using sva_t = base_t::sva_t;
   using Predictor_Base<base_t>::tp;
   using Predictor_Base<base_t>::dt;
   using Predictor_Base<base_t>::inv_lsm;
+  using Predictor_Base<base_t>::rhs_invoke;
 
-  auto make_alphas(const sva_t &, const sv_t &y, const auto &t, const auto &h,
-                   const auto &rhs) const {
+private:
+  static sv_t rk4(const base_t::sv_t &y, auto t, std::optional<std::size_t> i,
+                  auto h, const auto &rhs) {
+    if (h == 0)
+      return y;
+    auto k1 = rhs_invoke(rhs, t, i, y);
+    auto k2 = rhs_invoke(rhs, t + h / 2, i, y + k1 / 2);
+    auto k3 = rhs_invoke(rhs, t + h / 2, i, y + k2 / 2);
+    if (i)
+      ++(i.value());
+    auto k4 = rhs_invoke(rhs, t + h, i, y + k3);
+    return y + (k1 / 6 + k2 / 3 + k3 / 3 + k4 / 6) * h;
+  }
+
+protected:
+  sva_t make_alphas(const sva_t &, const sv_t &y, auto t, auto h,
+                    const auto &rhs) const {
     sva_t f;
-    auto yt = rk4(y, t, dt(h, 0), rhs);
-    f.col(0) = rhs(tp(t, h, 0), yt);
+    auto yt = rk4(y, t, std::nullopt, dt(h, 0), rhs);
+    f.col(0) =
+        rhs_invoke(rhs, tp(t, h, 0), std::make_optional<std::size_t>(0), yt);
     for (std::size_t i = 1; i < sva_t::ColsAtCompileTime; ++i) {
-      yt = rk4(yt, tp(t, h, i - 1), dt(h, i), rhs);
-      f.col(i) = rhs(tp(t, h, i), yt);
+      yt = rk4(yt, tp(t, h, i - 1), std::make_optional(i - 1), dt(h, i), rhs);
+      f.col(i) = rhs_invoke(rhs, tp(t, h, i), std::make_optional(i), yt);
     }
-    return (f * inv_lsm() * h).eval();
+    return f * inv_lsm() * h;
   }
 
   void save_alphas(const sva_t &) {}
@@ -325,13 +320,15 @@ protected:
   using vector_t = base_t::vector_t;
   using Predictor_Base<base_t>::tp;
   using Predictor_Base<base_t>::inv_lsm;
+  using Predictor_Base<base_t>::rhs_invoke;
 
-  auto make_alphas(const sva_t &alphas, const sv_t &y, const auto &t,
-                   const auto &h, const auto &rhs) const {
+  sva_t make_alphas(const sva_t &alphas, const sv_t &y, auto t, auto h,
+                    const auto &rhs) const {
     sva_t f;
     for (std::size_t i = 0; i < sva_t::ColsAtCompileTime; ++i)
-      f.col(i) = rhs(tp(t, h, i), y + alphas * pred_node_basis(i));
-    return (f * inv_lsm() * h).eval();
+      f.col(i) = rhs_invoke(rhs, tp(t, h, i), std::make_optional(i),
+                            y + alphas * pred_node_basis(i));
+    return f * inv_lsm() * h;
   }
 
   void save_alphas(const sva_t &) {}
@@ -350,11 +347,12 @@ protected:
   using Predictor_Base<base_t>::tp;
   using Predictor_Base<base_t>::inv_lsm;
   using Predictor_Base<base_t>::node_basis;
+  using Predictor_Base<base_t>::rhs_invoke;
 
   Predictor_BackDiff() : bdiff{} {}
 
-  auto make_alphas(const sva_t &, const sv_t &y, const auto &t, const auto &h,
-                   const auto &rhs) const {
+  sva_t make_alphas(const sva_t &, const sv_t &y, auto t, auto h,
+                    const auto &rhs) const {
     auto lim = bdiff.front().size();
     if (lim == 0)
       return sva_t::Zero().eval();
@@ -363,8 +361,9 @@ protected:
       zs += bdiff[i].front();
     sva_t f;
     for (std::size_t i = 0; i < sva_t::ColsAtCompileTime; ++i)
-      f.col(i) = rhs(tp(t, h, i), y + zs.col(i));
-    return (f * inv_lsm() * h).eval();
+      f.col(i) =
+          rhs_invoke(rhs, tp(t, h, i), std::make_optional(i), y + zs.col(i));
+    return f * inv_lsm() * h;
   }
 
   void save_alphas(const sva_t &alphas) {

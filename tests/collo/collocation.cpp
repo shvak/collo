@@ -81,7 +81,7 @@ TEST_CASE("collo/collocation.hpp: copy test for rhs") {
 struct alt_rhs {
   static std::size_t cnt;
 
-  sv_t operator()(double, std::size_t, const auto &y) const {
+  sv_t operator()(double, std::optional<std::size_t>, const auto &y) const {
     ++cnt;
     return {y[1], -y[0]};
   }
