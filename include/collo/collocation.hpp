@@ -350,9 +350,10 @@ protected:
   sva_t make_alphas(const sva_t &alphas, const sv_t &y, auto t, auto h,
                     const auto &rhs) const {
     sva_t f;
-    for (std::size_t i = 0; i < sva_t::ColsAtCompileTime; ++i)
-      f.col(i) = rhs_invoke(rhs, tp(t, h, i), std::make_optional(i),
-                            y + alphas * pred_node_basis_right(i));
+    for (std::size_t i = 0; i < sva_t::ColsAtCompileTime; ++i) {
+      sv_t yt = y + alphas * pred_node_basis_right(i);
+      f.col(i) = rhs_invoke(rhs, tp(t, h, i), std::make_optional(i), yt);
+    }
     return f * inv_lsm() * h;
   }
 
@@ -385,9 +386,10 @@ protected:
     for (std::size_t i = 1; i < lim; ++i)
       zs += bdiff[i].front();
     sva_t f;
-    for (std::size_t i = 0; i < sva_t::ColsAtCompileTime; ++i)
-      f.col(i) =
-          rhs_invoke(rhs, tp(t, h, i), std::make_optional(i), y + zs.col(i));
+    for (std::size_t i = 0; i < sva_t::ColsAtCompileTime; ++i) {
+      sv_t yt = y + zs.col(i);
+      f.col(i) = rhs_invoke(rhs, tp(t, h, i), std::make_optional(i), yt);
+    }
     return f * inv_lsm() * h;
   }
 
