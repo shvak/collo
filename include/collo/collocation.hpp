@@ -66,9 +66,9 @@ protected:
     return lsm.invert().to_1darray();
   }
 
-  static sv_t basis_left(num_t tau) {
-    return sv_t{numm::legendre_sh<method_stage, 1>(tau).data()} -
-           sv_t{numm::legendre_sh<method_stage, 1>(num_t{1.0}).data()};
+  static vector_t basis_left(num_t tau) {
+    return vector_t{numm::legendre_sh<method_stage, 1>(tau).data()} -
+           vector_t{numm::legendre_sh<method_stage, 1>(num_t{1.0}).data()};
   }
 
   static sv_t result(const sva_t &alphas) {

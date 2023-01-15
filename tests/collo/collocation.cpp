@@ -52,10 +52,12 @@ TEST_CASE("collo/collocation.hpp: different predictors") {
 
 TEST_CASE("collo/collocation.hpp: poly()") {
   auto l =
-      collo::make_Lobatto<double, 2, 2, test_rhs>(sv_t{1.0, 0.0}, 0.0, 1.0);
+      collo::make_Lobatto<double, 2, 4, test_rhs>(sv_t{1.0, 0.0}, 0.0, 1.0);
   l.do_step();
   CHECK(l.poly(0.0) == sv_t{1.0, 0.0});
   CHECK(l.poly(1.0) == l.state());
+  CHECK(l.poly_node(0) == sv_t{1.0, 0.0});
+  CHECK(l.poly_node(3) == l.state());
 }
 
 struct copy_test_rhs {
