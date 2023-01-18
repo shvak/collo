@@ -19,6 +19,8 @@ Method **time()** allow to get current timepoint.<br>
 Method **iternum()** give number of iterations of main cycle of last calculated step.<br>
 Method **state()** can be used to get current *y*.<br>
 Method **force()** can be used to get access to *f* and change it if needed.
+Method **poly()** can be used to get intermediate vector *y* with argument between 0 and 1. Other values of argument will give extrapolation with collocation polynom.
+Method **poly_node()** can be used to get vector *y* at collocation nodes.
 
 Please see examples for better understanding.
 
