@@ -123,13 +123,13 @@ kepler_elements(const arr_t &xyz,
         dot_z = xyz[5];
   num_t c_1 = y * dot_z - z * dot_y, c_2 = z * dot_x - x * dot_z,
         c_3 = x * dot_y - y * dot_x, c2 = c_1 * c_1 + c_2 * c_2 + c_3 * c_3,
-        c = std::sqrt(c2), v2 = dot_x * dot_x + dot_y * dot_y + dot_z * dot_z,
+        c = std::sqrt(c2), //v2 = dot_x * dot_x + dot_y * dot_y + dot_z * dot_z,
         r = std::sqrt(x * x + y * y + z * z),
         dot_r = (x * dot_x + y * dot_y + z * dot_z) / r, p = c2 / kappa2,
         est = dot_r * std::sqrt(p / kappa2), est2 = est * est,
         ect = p / r - num_t{1.0}, ect2 = ect * ect;
 
-  num_t h = v2 / num_t{2.0} - kappa2 / r,
+  num_t //h = v2 / num_t{2.0} - kappa2 / r,
         // a = - kappa2 / h / num_t{2.0}, //num_t{1.0} / (num_t{2.0} / r - v2 /
         // kappa2),
       e = std::sqrt(est2 + ect2), theta = true_angle(std::atan2(est, ect)),
@@ -139,9 +139,9 @@ kepler_elements(const arr_t &xyz,
                        theta);
 
   num_t M;
-  if (h + num_t{1.0} > num_t{1.0})
+  if (e + num_t{8.0} > num_t{9.0})
     M = mean_anomaly(hyperbolic_anomaly(true_anomaly_t{theta}, e), e);
-  else if (h + num_t{1.0} < num_t{1.0})
+  else if (e + num_t{8.0} < num_t{9.0})
     M = mean_anomaly(eccentric_anomaly(true_anomaly_t{theta}, e), e);
   else
     M = mean_anomaly(parabolic_sigma_t<num_t>{std::tan(theta / num_t{2.0})});
@@ -254,9 +254,9 @@ constexpr auto cartesian_elements(const arr_t &ke,
 {
   if (ke[0] < num_t{0.0} or ke[1] < num_t{0.0})
     return unknown_res<num_t, arr_t>();
-  else if (ke[1] >= num_t{0.0} and ke[1] < num_t{1.0})
+  else if (ke[1] >= num_t{0.0} and ke[1] + num_t{8.0} < num_t{9.0})
     return cartesian_elements_ellipse(ke, kappa2);
-  else if (ke[1] > num_t{1.0})
+  else if (ke[1] + num_t{8.0} > num_t{9.0})
     return cartesian_elements_hyperbola(ke, kappa2);
   else
     return cartesian_elements_parabola(ke, kappa2);
