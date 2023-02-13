@@ -105,8 +105,6 @@ private:
   std::size_t iter_num;
   sva_t alphas;
 
-  auto time_point(std::size_t i) const { return tp(time(), h, i); }
-
   sv_t sv_point(std::size_t i) const { return y + alphas * node_basis_left(i); }
 
 public:
@@ -115,6 +113,8 @@ public:
         alphas{sva_t::Zero()} {}
 
   auto time() const { return t0 + steps_num * h; }
+
+  auto time_point(std::size_t i) const { return tp(time(), h, i); }
 
   const auto &state() const { return y; }
 
