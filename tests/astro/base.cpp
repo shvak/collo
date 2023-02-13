@@ -7,6 +7,9 @@ using namespace std::chrono;
 TEST_CASE("astro/base.hpp: julian_date()") {
   CHECK(astro::julian_date<double>(29d / 01 / 1983, 0h + 0min + 0s) ==
         2445363.5);
+  auto dmy = 29d/01/1983;
+  CHECK(astro::julian_date<double>(dmy, 0h + 0min + 0s) ==
+        2445363.5);
 }
 
 TEST_CASE("astro/base.hpp: gregorian_from_jd()") {

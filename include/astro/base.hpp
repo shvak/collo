@@ -47,8 +47,7 @@ using parabolic_sigma_t = phys_val<num_t, phys_val_tag::parabolic_sigma>;
 
 template <numm::number_type num_t>
 constexpr num_t julian_date(
-    const std::chrono::year_month_day &date,
-    const std::chrono::duration<num_t, std::ratio<86400>> &time) noexcept {
+    const std::chrono::year_month_day &date) noexcept {
   int y = static_cast<int>(date.year()),
       m = static_cast<unsigned>(date.month()),
       d = static_cast<unsigned>(date.day());
@@ -57,7 +56,14 @@ constexpr num_t julian_date(
   jd += (367 * (m - 2 - 12 * a)) / 12;
   jd -= (3 * ((y + 4900 + a) / 100)) / 4;
   jd += d - 32075 - 0.5;
-  return jd + time.count();
+  return jd;
+}
+
+template <numm::number_type num_t>
+constexpr num_t julian_date(
+    auto &&date,
+    const std::chrono::duration<num_t, std::ratio<86400>> &time) noexcept {
+  return julian_date<num_t>(std::forward<decltype(date)>(date)) + time.count();
 }
 
 template <numm::number_type num_t>
