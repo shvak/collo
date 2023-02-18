@@ -65,7 +65,7 @@ struct copy_test_rhs {
 
   copy_test_rhs() = default;
   copy_test_rhs(const copy_test_rhs &) { ++cnt; }
-  copy_test_rhs(copy_test_rhs &&) = default;
+  copy_test_rhs(copy_test_rhs &&) = delete;
 
   sv_t operator()(double, const auto &y) const { return {y[1], -y[0]}; }
 };
@@ -73,11 +73,31 @@ struct copy_test_rhs {
 std::size_t copy_test_rhs::cnt = 0;
 
 TEST_CASE("collo/collocation.hpp: copy test for rhs") {
-  auto l = collo::make_Lobatto<double, 2, 2, copy_test_rhs>(sv_t{1.0, 0.0}, 0.0,
+  copy_test_rhs rhs{};
+  auto l = collo::make_Lobatto<double, 2, 2>(sv_t{1.0, 0.0}, 0.0, 1.0, rhs);
+  while (l.do_step().steps() < 100)
+    ;
+  CHECK(copy_test_rhs::cnt == 0);
+}
+
+struct move_test_rhs {
+  static std::size_t cnt;
+
+  move_test_rhs() = default;
+  move_test_rhs(const move_test_rhs &) = delete;
+  move_test_rhs(move_test_rhs &&) { ++cnt; }
+
+  sv_t operator()(double, const auto &y) const { return {y[1], -y[0]}; }
+};
+
+std::size_t move_test_rhs::cnt = 0;
+
+TEST_CASE("collo/collocation.hpp: move test for rhs") {
+  auto l = collo::make_Lobatto<double, 2, 2, move_test_rhs>(sv_t{1.0, 0.0}, 0.0,
                                                             1.0);
   while (l.do_step().steps() < 100)
     ;
-  CHECK(copy_test_rhs::cnt == 1);
+  CHECK(move_test_rhs::cnt == 1);
 }
 
 struct alt_rhs {
