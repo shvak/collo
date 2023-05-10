@@ -17,8 +17,9 @@ protected:
 
 template <Pred p, numm::number_type num_t, std::size_t system_order,
           std::size_t method_stage, std::size_t param>
-using Pred_Lobatto_base_t = Pred_select<p, num_t, system_order, method_stage,
-                                        Lobatto_base, param>::type;
+using Pred_Lobatto_base_t =
+    typename Pred_select<p, Lobatto_base<num_t, system_order, method_stage>,
+                         param>::type;
 
 template <numm::number_type num_t, std::size_t system_order,
           std::size_t method_stage, typename rhs_t, Pred p = Pred::Poly,

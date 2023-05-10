@@ -46,8 +46,8 @@ template <numm::number_type num_t>
 using parabolic_sigma_t = phys_val<num_t, phys_val_tag::parabolic_sigma>;
 
 template <numm::number_type num_t>
-constexpr num_t julian_date(
-    const std::chrono::year_month_day &date) noexcept {
+[[nodiscard]] constexpr num_t
+julian_date(const std::chrono::year_month_day &date) noexcept {
   int y = static_cast<int>(date.year()),
       m = static_cast<unsigned>(date.month()),
       d = static_cast<unsigned>(date.day());
@@ -60,14 +60,15 @@ constexpr num_t julian_date(
 }
 
 template <numm::number_type num_t>
-constexpr num_t julian_date(
+[[nodiscard]] constexpr num_t julian_date(
     auto &&date,
     const std::chrono::duration<num_t, std::ratio<86400>> &time) noexcept {
   return julian_date<num_t>(std::forward<decltype(date)>(date)) + time.count();
 }
 
 template <numm::number_type num_t>
-constexpr std::chrono::year_month_day gregorian_from_jd(num_t jd) noexcept {
+[[nodiscard]] constexpr std::chrono::year_month_day
+gregorian_from_jd(num_t jd) noexcept {
   int j = jd + .5;
   int f = j + 1401 + (((4 * j + 274277) / 146097) * 3) / 4 - 38;
   int e = 4 * f + 3;
@@ -80,7 +81,7 @@ constexpr std::chrono::year_month_day gregorian_from_jd(num_t jd) noexcept {
 }
 
 template <numm::number_type num_t>
-constexpr auto time_from_jd(num_t jd) noexcept {
+[[nodiscard]] constexpr auto time_from_jd(num_t jd) noexcept {
   double sjd = jd + .5;
   int j = sjd;
   return std::chrono::duration<num_t, std::ratio<86400>>(sjd - j);

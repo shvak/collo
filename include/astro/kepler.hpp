@@ -9,52 +9,55 @@
 namespace astro {
 
 template <numm::number_type num_t>
-constexpr mean_anomaly_t<num_t> mean_anomaly(eccentric_anomaly_t<num_t> E,
-                                             num_t e) {
+[[nodiscard]] constexpr mean_anomaly_t<num_t>
+mean_anomaly(eccentric_anomaly_t<num_t> E, num_t e) {
   return E - e * std::sin(E);
 }
 
 template <numm::number_type num_t>
-constexpr mean_anomaly_t<num_t> mean_anomaly(hyperbolic_anomaly_t<num_t> H,
-                                             num_t e) {
+[[nodiscard]] constexpr mean_anomaly_t<num_t>
+mean_anomaly(hyperbolic_anomaly_t<num_t> H, num_t e) {
   return e * std::sinh(H) - H;
 }
 
 template <numm::number_type num_t>
-constexpr mean_anomaly_t<num_t> mean_anomaly(true_anomaly_t<num_t> theta,
-                                             num_t e) {
+[[nodiscard]] constexpr mean_anomaly_t<num_t>
+mean_anomaly(true_anomaly_t<num_t> theta, num_t e) {
   return mean_anomaly(eccentric_anomaly(theta, e), e);
 }
 
 template <numm::number_type num_t>
-constexpr mean_anomaly_t<num_t> mean_anomaly(parabolic_sigma_t<num_t> sigma) {
+[[nodiscard]] constexpr mean_anomaly_t<num_t>
+mean_anomaly(parabolic_sigma_t<num_t> sigma) {
   return (sigma * sigma + num_t{3.0}) * sigma / num_t{2.0};
 }
 
 template <numm::number_type num_t>
-constexpr d_mean_anomaly_t<num_t> d_mean_anomaly(eccentric_anomaly_t<num_t> E,
-                                                 num_t e) {
+[[nodiscard]] constexpr d_mean_anomaly_t<num_t>
+d_mean_anomaly(eccentric_anomaly_t<num_t> E, num_t e) {
   return num_t{1.0} - e * std::cos(E);
 }
 
 template <numm::number_type num_t>
-constexpr d_mean_anomaly_t<num_t> d_mean_anomaly(hyperbolic_anomaly_t<num_t> H,
-                                                 num_t e) {
+[[nodiscard]] constexpr d_mean_anomaly_t<num_t>
+d_mean_anomaly(hyperbolic_anomaly_t<num_t> H, num_t e) {
   return e * std::cosh(H) - num_t{1.0};
 }
 
 template <numm::number_type num_t>
-constexpr eccentric_anomaly_t<num_t> eccentric_anomaly(mean_anomaly_t<num_t> M,
-                                                       num_t e) {
+[[nodiscard]] constexpr eccentric_anomaly_t<num_t>
+eccentric_anomaly(mean_anomaly_t<num_t> M, num_t e) {
   auto f = [M, e](num_t x) {
-    return mean_anomaly(eccentric_anomaly_t{x}, e) - M;
+    return mean_anomaly(eccentric_anomaly_t<num_t>{x}, e) - M;
   };
-  auto df = [e](num_t x) { return d_mean_anomaly(eccentric_anomaly_t{x}, e); };
+  auto df = [e](num_t x) {
+    return d_mean_anomaly(eccentric_anomaly_t<num_t>{x}, e);
+  };
   return numm::newton(static_cast<num_t>(M), f, df);
 }
 
 template <numm::number_type num_t>
-constexpr eccentric_anomaly_t<num_t>
+[[nodiscard]] constexpr eccentric_anomaly_t<num_t>
 eccentric_anomaly(true_anomaly_t<num_t> theta, num_t e) {
   num_t beta = e / (1 + std::sqrt(1 - e * e));
   return theta -
@@ -62,43 +65,47 @@ eccentric_anomaly(true_anomaly_t<num_t> theta, num_t e) {
 }
 
 template <numm::number_type num_t>
-constexpr hyperbolic_anomaly_t<num_t>
+[[nodiscard]] constexpr hyperbolic_anomaly_t<num_t>
 hyperbolic_anomaly(mean_anomaly_t<num_t> M, num_t e) {
   auto f = [M, e](num_t x) {
-    return mean_anomaly(hyperbolic_anomaly_t{x}, e) - M;
+    return mean_anomaly(hyperbolic_anomaly_t<num_t>{x}, e) - M;
   };
-  auto df = [e](num_t x) { return d_mean_anomaly(hyperbolic_anomaly_t{x}, e); };
+  auto df = [e](num_t x) {
+    return d_mean_anomaly(hyperbolic_anomaly_t<num_t>{x}, e);
+  };
   return numm::newton(static_cast<num_t>(M), f, df);
 }
 
 template <numm::number_type num_t>
-constexpr hyperbolic_anomaly_t<num_t>
+[[nodiscard]] constexpr hyperbolic_anomaly_t<num_t>
 hyperbolic_anomaly(true_anomaly_t<num_t> theta, num_t e) {
   num_t c_ = std::sqrt((e - 1) / (e + 1));
   return num_t{2.0} * std::atanh(c_ * std::tan(theta / num_t{2.0}));
 }
 
 template <numm::number_type num_t>
-constexpr true_anomaly_t<num_t> true_anomaly(eccentric_anomaly_t<num_t> E,
-                                             num_t e) {
+[[nodiscard]] constexpr true_anomaly_t<num_t>
+true_anomaly(eccentric_anomaly_t<num_t> E, num_t e) {
   num_t beta = e / (1 + std::sqrt(1 - e * e));
   return E + 2 * std::atan2(beta * std::sin(E), 1 - beta * std::cos(E));
 }
 
 template <numm::number_type num_t>
-constexpr true_anomaly_t<num_t> true_anomaly(hyperbolic_anomaly_t<num_t> H,
-                                             num_t e) {
+[[nodiscard]] constexpr true_anomaly_t<num_t>
+true_anomaly(hyperbolic_anomaly_t<num_t> H, num_t e) {
   num_t eta = std::sqrt(e * e - num_t{1.0});
   return std::atan2(eta * std::sinh(H), e - std::cosh(H));
 }
 
 template <numm::number_type num_t>
-constexpr true_anomaly_t<num_t> true_anomaly(mean_anomaly_t<num_t> M, num_t e) {
+[[nodiscard]] constexpr true_anomaly_t<num_t>
+true_anomaly(mean_anomaly_t<num_t> M, num_t e) {
   return true_anomaly(eccentric_anomaly(M, e), e);
 }
 
 template <numm::number_type num_t>
-constexpr parabolic_sigma_t<num_t> parabolic_sigma(mean_anomaly_t<num_t> M) {
+[[nodiscard]] constexpr parabolic_sigma_t<num_t>
+parabolic_sigma(mean_anomaly_t<num_t> M) {
   num_t x = std::sqrt(num_t{1.0} + M * M);
   return std::cbrt(x + M) - std::cbrt(x - M);
 }
@@ -109,13 +116,14 @@ constexpr auto unknown_res() {
   return arr_t{x, x, x, x, x, x};
 }
 
-template <numm::number_type num_t> constexpr auto true_angle(num_t angle) {
+template <numm::number_type num_t>
+[[nodiscard]] constexpr auto true_angle(num_t angle) {
   constexpr num_t pi = std::numbers::pi_v<num_t>;
   return std::fmod(angle + 2 * pi, 2 * pi);
 }
 
 template <numm::number_type num_t, typename arr_t>
-constexpr auto
+[[nodiscard]] constexpr auto
 kepler_elements(const arr_t &xyz,
                 num_t kappa2) // xyz: x, y, z, dot_x, dot_y, dot_z
 {
@@ -123,26 +131,28 @@ kepler_elements(const arr_t &xyz,
         dot_z = xyz[5];
   num_t c_1 = y * dot_z - z * dot_y, c_2 = z * dot_x - x * dot_z,
         c_3 = x * dot_y - y * dot_x, c2 = c_1 * c_1 + c_2 * c_2 + c_3 * c_3,
-        c = std::sqrt(c2), //v2 = dot_x * dot_x + dot_y * dot_y + dot_z * dot_z,
-        r = std::sqrt(x * x + y * y + z * z),
+        c = std::sqrt(
+            c2), // v2 = dot_x * dot_x + dot_y * dot_y + dot_z * dot_z,
+      r = std::sqrt(x * x + y * y + z * z),
         dot_r = (x * dot_x + y * dot_y + z * dot_z) / r, p = c2 / kappa2,
         est = dot_r * std::sqrt(p / kappa2), est2 = est * est,
         ect = p / r - num_t{1.0}, ect2 = ect * ect;
 
-  num_t //h = v2 / num_t{2.0} - kappa2 / r,
-        // a = - kappa2 / h / num_t{2.0}, //num_t{1.0} / (num_t{2.0} / r - v2 /
-        // kappa2),
-      e = std::sqrt(est2 + ect2), theta = true_angle(std::atan2(est, ect)),
-        Omega = true_angle(std::atan2(c_1, -c_2)), i = std::acos(c_3 / c),
-        g = true_angle(std::atan2(z, std::sin(i) * (x * std::cos(Omega) +
-                                                    y * std::sin(Omega))) -
-                       theta);
+  num_t // h = v2 / num_t{2.0} - kappa2 / r,
+        //  a = - kappa2 / h / num_t{2.0}, //num_t{1.0} / (num_t{2.0} / r - v2 /
+        //  kappa2),
+      e = std::sqrt(est2 + ect2),
+      theta = true_angle(std::atan2(est, ect)),
+      Omega = true_angle(std::atan2(c_1, -c_2)), i = std::acos(c_3 / c),
+      g = true_angle(std::atan2(z, std::sin(i) * (x * std::cos(Omega) +
+                                                  y * std::sin(Omega))) -
+                     theta);
 
   num_t M;
   if (e + num_t{8.0} > num_t{9.0})
-    M = mean_anomaly(hyperbolic_anomaly(true_anomaly_t{theta}, e), e);
+    M = mean_anomaly(hyperbolic_anomaly(true_anomaly_t<num_t>{theta}, e), e);
   else if (e + num_t{8.0} < num_t{9.0})
-    M = mean_anomaly(eccentric_anomaly(true_anomaly_t{theta}, e), e);
+    M = mean_anomaly(eccentric_anomaly(true_anomaly_t<num_t>{theta}, e), e);
   else
     M = mean_anomaly(parabolic_sigma_t<num_t>{std::tan(theta / num_t{2.0})});
 
@@ -150,8 +160,8 @@ kepler_elements(const arr_t &xyz,
 }
 
 template <numm::number_type num_t, typename arr_t>
-constexpr auto rotate_from_orbit_plane(const arr_t &ceop, num_t i, num_t Omega,
-                                       num_t g) {
+[[nodiscard]] constexpr auto rotate_from_orbit_plane(const arr_t &ceop, num_t i,
+                                                     num_t Omega, num_t g) {
   num_t cosi = std::cos(i), sini = std::sin(i), cosO = std::cos(Omega),
         sinO = std::sin(Omega), cosg = std::cos(g), sing = std::sin(g),
         qxx = cosO * cosg - cosi * sinO * sing,
@@ -170,7 +180,7 @@ constexpr auto rotate_from_orbit_plane(const arr_t &ceop, num_t i, num_t Omega,
 }
 
 template <numm::number_type num_t, typename arr_t>
-constexpr auto cartesian_elements_ellipse_orbit_plane(
+[[nodiscard]] constexpr auto cartesian_elements_ellipse_orbit_plane(
     num_t p, num_t e, eccentric_anomaly_t<num_t> E, num_t kappa2) {
   num_t cosE = std::cos(E), sinE = std::sin(E), eta2 = num_t{1.0} - e * e,
         eta = std::sqrt(eta2), a = p / eta2, n = std::sqrt(kappa2 / a / a / a),
@@ -183,12 +193,12 @@ constexpr auto cartesian_elements_ellipse_orbit_plane(
 }
 
 template <numm::number_type num_t, typename arr_t>
-constexpr auto
+[[nodiscard]] constexpr auto
 cartesian_elements_ellipse(const arr_t &ke,
                            num_t kappa2) // ke: p, e, i, Omega, g, M
 {
   num_t p = ke[0], e = ke[1], i = ke[2], Omega = ke[3], g = ke[4], M = ke[5];
-  auto E = eccentric_anomaly(mean_anomaly_t{M}, e);
+  auto E = eccentric_anomaly(mean_anomaly_t<num_t>{M}, e);
 
   return rotate_from_orbit_plane(
       cartesian_elements_ellipse_orbit_plane<num_t, arr_t>(p, e, E, kappa2), i,
@@ -196,7 +206,7 @@ cartesian_elements_ellipse(const arr_t &ke,
 }
 
 template <numm::number_type num_t, typename arr_t>
-constexpr auto cartesian_elements_hyperbola_orbit_plane(
+[[nodiscard]] constexpr auto cartesian_elements_hyperbola_orbit_plane(
     num_t p, num_t e, hyperbolic_anomaly_t<num_t> H, num_t kappa2) {
   num_t chH = std::cosh(H), shH = std::sinh(H), eta2 = e * e - num_t{1.0},
         eta = std::sqrt(eta2), a = -p / eta2,
@@ -209,12 +219,12 @@ constexpr auto cartesian_elements_hyperbola_orbit_plane(
 }
 
 template <numm::number_type num_t, typename arr_t>
-constexpr auto
+[[nodiscard]] constexpr auto
 cartesian_elements_hyperbola(const arr_t &ke,
                              num_t kappa2) // ke: p, e, i, Omega, g, M
 {
   num_t p = ke[0], e = ke[1], i = ke[2], Omega = ke[3], g = ke[4], M = ke[5];
-  auto H = hyperbolic_anomaly(mean_anomaly_t{M}, e);
+  auto H = hyperbolic_anomaly(mean_anomaly_t<num_t>{M}, e);
 
   return rotate_from_orbit_plane(
       cartesian_elements_hyperbola_orbit_plane<num_t, arr_t>(p, e, H, kappa2),
@@ -222,7 +232,7 @@ cartesian_elements_hyperbola(const arr_t &ke,
 }
 
 template <numm::number_type num_t, typename arr_t>
-constexpr auto
+[[nodiscard]] constexpr auto
 cartesian_elements_parabola_orbit_plane(num_t p, parabolic_sigma_t<num_t> sigma,
                                         num_t kappa2) {
   num_t sigma2 = sigma * sigma,
@@ -236,12 +246,12 @@ cartesian_elements_parabola_orbit_plane(num_t p, parabolic_sigma_t<num_t> sigma,
 }
 
 template <numm::number_type num_t, typename arr_t>
-constexpr auto
+[[nodiscard]] constexpr auto
 cartesian_elements_parabola(const arr_t &ke,
                             num_t kappa2) // ke: p, 1.0, i, Omega, g, M
 {
   num_t p = ke[0], i = ke[2], Omega = ke[3], g = ke[4], M = ke[5];
-  auto sigma = parabolic_sigma(mean_anomaly_t{M});
+  auto sigma = parabolic_sigma(mean_anomaly_t<num_t>{M});
 
   return rotate_from_orbit_plane(
       cartesian_elements_parabola_orbit_plane<num_t, arr_t>(p, sigma, kappa2),
@@ -249,8 +259,9 @@ cartesian_elements_parabola(const arr_t &ke,
 }
 
 template <numm::number_type num_t, typename arr_t>
-constexpr auto cartesian_elements(const arr_t &ke,
-                                  num_t kappa2) // ke: p, e, i, Omega, g, M
+[[nodiscard]] constexpr auto
+cartesian_elements(const arr_t &ke,
+                   num_t kappa2) // ke: p, e, i, Omega, g, M
 {
   if (ke[0] < num_t{0.0} or ke[1] < num_t{0.0})
     return unknown_res<num_t, arr_t>();

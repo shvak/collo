@@ -8,31 +8,37 @@ using std::numbers::pi;
 
 TEST_CASE("astro/kepler.hpp: anomalies") {
   CHECK(astro::eccentric_anomaly(
-            astro::mean_anomaly(astro::eccentric_anomaly_t{1.0}, 0.5), 0.5) +
+            astro::mean_anomaly(astro::eccentric_anomaly_t<double>{1.0}, 0.5),
+            0.5) +
             2.0 ==
         3.0);
   CHECK(astro::hyperbolic_anomaly(
-            astro::mean_anomaly(astro::hyperbolic_anomaly_t{1.0}, 1.5), 1.5) +
+            astro::mean_anomaly(astro::hyperbolic_anomaly_t<double>{1.0}, 1.5),
+            1.5) +
             2.0 ==
         3.0);
   CHECK(astro::true_anomaly(
-            astro::mean_anomaly(astro::true_anomaly_t{1.0}, 0.5), 0.5) +
+            astro::mean_anomaly(astro::true_anomaly_t<double>{1.0}, 0.5), 0.5) +
             2.0 ==
         3.0);
   CHECK(astro::parabolic_sigma(
-            astro::mean_anomaly(astro::parabolic_sigma_t{1.0})) +
+            astro::mean_anomaly(astro::parabolic_sigma_t<double>{1.0})) +
             2.0 ==
         3.0);
-  CHECK(astro::d_mean_anomaly(astro::eccentric_anomaly_t{pi}, 0.5) + 2.0 ==
+  CHECK(astro::d_mean_anomaly(astro::eccentric_anomaly_t<double>{pi}, 0.5) +
+            2.0 ==
         3.5);
-  CHECK(astro::d_mean_anomaly(astro::hyperbolic_anomaly_t{0.0}, 1.5) + 2.0 ==
+  CHECK(astro::d_mean_anomaly(astro::hyperbolic_anomaly_t<double>{0.0}, 1.5) +
+            2.0 ==
         2.5);
   CHECK(astro::eccentric_anomaly(
-            astro::true_anomaly(astro::eccentric_anomaly_t{1.0}, 0.5), 0.5) +
+            astro::true_anomaly(astro::eccentric_anomaly_t<double>{1.0}, 0.5),
+            0.5) +
             2.0 ==
         3.0);
   CHECK(astro::hyperbolic_anomaly(
-            astro::true_anomaly(astro::hyperbolic_anomaly_t{1.0}, 1.5), 1.5) +
+            astro::true_anomaly(astro::hyperbolic_anomaly_t<double>{1.0}, 1.5),
+            1.5) +
             2.0 ==
         3.0);
 }

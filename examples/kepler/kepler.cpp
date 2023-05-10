@@ -9,9 +9,8 @@
 #include <numbers>
 
 template <typename T>
-requires std::is_base_of_v<Eigen::DenseBase<T>, T>
-struct fmt::formatter<T> : ostream_formatter {
-};
+  requires std::is_base_of_v<Eigen::DenseBase<T>, T>
+struct fmt::formatter<T> : ostream_formatter {};
 
 constexpr std::size_t so = 6; // system order
 constexpr std::size_t ms = 8; // method stages
@@ -19,7 +18,7 @@ using sv_t = collo::state_vector_t<double, so>;
 using std::numbers::pi;
 
 struct Kepler {
-  static double GM;
+  static constexpr double GM = 4 * pi * pi;
   static std::size_t cnt;
 
   sv_t operator()(double, const auto &y) const {
@@ -40,7 +39,6 @@ struct Kepler {
   }
 };
 
-double Kepler::GM = 4 * pi * pi;
 std::size_t Kepler::cnt = 0;
 
 int main(int, char **argv) {
@@ -74,7 +72,8 @@ int main(int, char **argv) {
     iternum += lobatto.do_step().iternum();
     fout << fmt::format("{}\t{}\t{:.17g}\n", lobatto.steps() * h,
                         lobatto.state().transpose(),
-                        (Kepler::energy(lobatto.state()) - E_start) / E_start);
+                        (Kepler::energy(lobatto.state()) - E_start) /
+                        E_start);
   }
   auto end = std::chrono::steady_clock::now();
 
@@ -82,11 +81,13 @@ int main(int, char **argv) {
 
   std::cout << fmt::format("{} steps finished\n", lobatto.steps());
   std::cout << fmt::format(
-      "dE / E = {}\n", (Kepler::energy(lobatto.state()) - E_start) / E_start);
+      "dE / E = {}\n", (Kepler::energy(lobatto.state()) - E_start) /
+      E_start);
   std::cout << fmt::format("iterations = {}\n", iternum);
   std::cout << fmt::format("RHS invocations = {}\n", Kepler::count());
   std::cout << fmt::format("time elapsed {}",
-                           std::chrono::duration<double>(end - start).count());
+                           std::chrono::duration<double>(end -
+                           start).count());
 
   return 0;
 }

@@ -18,7 +18,8 @@ protected:
 template <Pred p, numm::number_type num_t, std::size_t system_order,
           std::size_t method_stage, std::size_t param>
 using Pred_Gauss_base_t =
-    Pred_select<p, num_t, system_order, method_stage, Gauss_base, param>::type;
+    typename Pred_select<p, Gauss_base<num_t, system_order, method_stage>,
+                         param>::type;
 
 template <numm::number_type num_t, std::size_t system_order,
           std::size_t method_stage, typename rhs_t, Pred p = Pred::Poly,
