@@ -24,6 +24,4 @@ Method **poly_node()** can be used to get vector *y* at collocation nodes.
 
 Please see examples for better understanding.
 
-Note: C++20 standard code, that can be compiled by gcc only now, gcc version 11.0+. Clang wants too many 'typename's and doesn't want some consteval functions.
-
 Note: You can rich full power of integrator if compile your code and provided examples with option '-march=native'. This feature provided by 'Eigen' library and modern cpu's vectorization.
