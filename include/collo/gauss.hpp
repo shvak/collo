@@ -30,8 +30,8 @@ constexpr auto make_Gauss(sv_t &&y0, auto &&t0, auto &&h,
   return Collocation<
       num_t, rhs_t,
       Pred_Gauss_base_t<p, num_t, system_order, method_stage, param>>(
-      std::forward<sv_t>(y0), std::forward<num_t>(t0), std::forward<num_t>(h),
-      std::forward<rhs_t>(rhs));
+      std::forward<sv_t>(y0), std::forward<decltype(t0)>(t0),
+      std::forward<decltype(h)>(h), std::forward<rhs_t>(rhs));
 }
 
 } // namespace collo

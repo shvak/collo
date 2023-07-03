@@ -117,3 +117,12 @@ TEST_CASE("collo/collocation.hpp: alternative rhs form") {
     ;
   CHECK(alt_rhs::cnt > 0);
 }
+
+TEST_CASE("collo/collocation.hpp: const form of factory args") {
+  auto testic = [](const sv_t &y0, const double &t0, const double &h) {
+    return collo::make_Lobatto<double, 2, 2>(y0, t0, h,
+                                             [](double, const sv_t &) {});
+  };
+  auto l = testic(sv_t{1.0, 0.0}, 0.0, 1.0);
+  CHECK(l.time() == 0.0);
+}

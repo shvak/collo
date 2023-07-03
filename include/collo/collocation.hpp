@@ -108,14 +108,10 @@ private:
   sv_t sv_point(std::size_t i) const { return y + alphas * node_basis_left(i); }
 
 public:
-  // Collocation(const sv_t &y0, const num_t &t0_, const num_t &h_, rhs_t
-  // rhs_)
-  //     : y{y0}, t0{t0_}, h{h_}, steps_num{0}, rhs{rhs_}, iter_num{0},
-  //       alphas{sva_t::Zero()} {}
-  //
   Collocation(auto &&y0, auto &&t0_, auto &&h_, auto &&rhs_)
-      : y{std::forward<sv_t>(y0)}, t0{std::forward<num_t>(t0_)},
-        h{std::forward<num_t>(h_)}, rhs{std::forward<rhs_t>(rhs_)} {}
+      : y{std::forward<decltype(y0)>(y0)}, t0{std::forward<decltype(t0_)>(t0_)},
+        h{std::forward<decltype(h_)>(h_)},
+        rhs{std::forward<decltype(rhs_)>(rhs_)} {}
 
   auto time() const { return t0 + steps_num * h; }
 
