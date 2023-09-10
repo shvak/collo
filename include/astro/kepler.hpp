@@ -119,7 +119,7 @@ constexpr auto unknown_res() {
 template <numm::number_type num_t>
 [[nodiscard]] constexpr auto true_angle(num_t angle) {
   constexpr num_t pi = std::numbers::pi_v<num_t>;
-  return std::fmod(angle + 2 * pi, 2 * pi);
+  return std::fmod(angle + 4 * pi, 2 * pi);
 }
 
 template <numm::number_type num_t, typename arr_t>

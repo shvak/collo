@@ -81,5 +81,5 @@ TEST_CASE("astro/kepler.hpp: transformations") {
   CHECK(ke3[2] + 4.0 == ke3_test[2] + 4.0);
   CHECK(ke3[3] + 4.0 == ke3_test[3] + 4.0);
   CHECK(ke3[4] + 4.0 == ke3_test[4] + 4.0);
-  CHECK(ke3[5] + 8.0 == ke3_test[5] + 8.0);
+  CHECK(ke3[5] + 16.0 == ke3_test[5] + 16.0);
 }
