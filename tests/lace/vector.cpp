@@ -62,9 +62,8 @@ TEST_CASE("lace/vector.hpp: vector::squared_l2norm()") {
 }
 
 TEST_CASE("lace/vector.hpp: vector::l2norm()") {
-  const auto n =
-      lace::vector<double, 2>{-1.0, 2.0}.l2norm() - std::sqrt(5.0) + 32.0;
-  CHECK(n - 32.0 == 0.0);
+  const auto n = lace::vector<double, 2>{-1.0, 2.0}.l2norm();
+  CHECK(n == doctest::Approx(std::sqrt(5.0)).epsilon(1e-15));
 }
 
 TEST_CASE("lace/vector.hpp: vector::operator+(vector)") {

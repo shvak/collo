@@ -8,26 +8,34 @@
 TEST_CASE("numm/base.hpp: cos(x)") {
   auto pi = std::numbers::pi_v<double>;
 
-  SUBCASE("x=0") { CHECK(numm::cos(0.0) - 1.0 == 0.0); }
-  SUBCASE("x=pi") { CHECK(numm::cos(pi) + 1.0 == 0.0); }
-  SUBCASE("x=-pi") { CHECK(numm::cos(-pi) + 1.0 == 0.0); }
+  SUBCASE("x=0") {
+    CHECK(numm::cos(0.0) == doctest::Approx(1.0).epsilon(1e-15));
+  }
+  SUBCASE("x=pi") {
+    CHECK(numm::cos(pi) == doctest::Approx(-1.0).epsilon(1e-15));
+  }
+  SUBCASE("x=-pi") {
+    CHECK(numm::cos(-pi) == doctest::Approx(-1.0).epsilon(1e-15));
+  }
   SUBCASE("x=pi/2") {
-    auto t = numm::cos(pi / 2) + 1.0;
-    CHECK(t - 1.0 == 0.0);
+    CHECK(numm::cos(pi / 2) + 1.0 == doctest::Approx(1.0).epsilon(1e-15));
   }
   SUBCASE("x=-pi/2") {
-    auto t = numm::cos(-pi / 2) + 1.0;
-    CHECK(t - 1.0 == 0.0);
+    CHECK(numm::cos(-pi / 2) + 1.0 == doctest::Approx(1.0).epsilon(1e-15));
   }
 }
 
-//accuracy of numm::sqrt() isn't the best
-TEST_CASE("numm/base.hpp") {
-  CHECK(numm::sqrt(1.0) == 1.0);
-  auto t = numm::sqrt(2.0) - std::sqrt(2.0) + 8.0;
-  CHECK(t - 8.0 == 0.0);
-  t = numm::sqrt(4.0) - 2.0 + 32.0;
-  CHECK(t - 32.0 == 0.0);
+// accuracy of numm::sqrt() isn't the best
+TEST_CASE("numm/base.hpp: sqrt(x)") {
+  SUBCASE("x=1") {
+    CHECK(numm::sqrt(1.0) == doctest::Approx(1.0).epsilon(1e-15));
+  }
+  SUBCASE("x=2") {
+    CHECK(numm::sqrt(2.0) == doctest::Approx(std::sqrt(2.0)).epsilon(1e-15));
+  }
+  SUBCASE("x=4") {
+    CHECK(numm::sqrt(4.0) == doctest::Approx(2.0).epsilon(1e-15));
+  }
 }
 
 TEST_CASE("numm/base.hpp: cutoff_first<n>({1, 2, 3})") {
@@ -67,7 +75,7 @@ TEST_CASE("numm/base.hpp: ortho_poly<5, 0, double>(...)") {
   CHECK(res[5] == 5.0);
 }
 
-TEST_CASE("numm/base.hpp: ortho_poly<3, 0, 3, double>(...)") {
+TEST_CASE("numm/base.hpp: ortho_poly<3, 1, 3, double>(...)") {
   auto res = numm::ortho_poly<3, 1, 3, double>({0.0, 1.0, 2.0}, [](double) {
     return std::array<double, 3>{1.0, 2.0, 3.0};
   });

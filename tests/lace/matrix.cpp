@@ -187,50 +187,38 @@ TEST_CASE("lace/matrix.hpp: square_matrix::PLU()") {
   CHECK(m.at(1).at(0) == 1.0);
   CHECK(m.at(1).at(1) == 0.0);
   m = std::get<1>(t);
-  CHECK(m.at(0).at(0) - 3.0 == 0.0);
+  CHECK(m.at(0).at(0) == 3.0);
   CHECK(m.at(0).at(1) == 0.0);
-  CHECK(m.at(1).at(0) - 1.0 == 0.0);
-  auto v = m.at(1).at(1) - 2.0 / 3.0 + 1.0;
-  CHECK(v - 1.0 == 0.0);
+  CHECK(m.at(1).at(0) == 1.0);
+  CHECK(m.at(1).at(1) == doctest::Approx(2.0 / 3.0).epsilon(1e-15));
   m = std::get<2>(t);
-  CHECK(m.at(0).at(0) - 1.0 == 0.0);
-  CHECK(m.at(0).at(1) - 4.0 / 3.0 == 0.0);
+  CHECK(m.at(0).at(0) == 1.0);
+  CHECK(m.at(0).at(1) == doctest::Approx(4.0 / 3.0).epsilon(1e-15));
   CHECK(m.at(1).at(0) == 0.0);
-  CHECK(m.at(1).at(1) - 1.0 == 0.0);
+  CHECK(m.at(1).at(1) == 1.0);
   m = std::get<3>(t);
-  CHECK(m.at(0).at(0) - 1.0 / 3.0 == 0.0);
+  CHECK(m.at(0).at(0) == doctest::Approx(1.0 / 3.0).epsilon(1e-15));
   CHECK(m.at(0).at(1) == 0.0);
-  v = m.at(1).at(0) + 0.5 + 1.0;
-  CHECK(v - 1.0 == 0.0);
-  v = m.at(1).at(1) - 1.5 + 4.0;
-  CHECK(v - 4.0 == 0.0);
+  CHECK(m.at(1).at(0) == doctest::Approx(-0.5).epsilon(1e-15));
+  CHECK(m.at(1).at(1) == doctest::Approx(1.5).epsilon(1e-15));
   m = std::get<4>(t);
-  CHECK(m.at(0).at(0) - 1.0 == 0.0);
-  CHECK(m.at(0).at(1) + 4.0 / 3.0 == 0.0);
+  CHECK(m.at(0).at(0) == 1.0);
+  CHECK(m.at(0).at(1) == doctest::Approx(-4.0 / 3.0).epsilon(1e-15));
   CHECK(m.at(1).at(0) == 0.0);
-  CHECK(m.at(1).at(1) - 1.0 == 0.0);
+  CHECK(m.at(1).at(1) == 1.0);
 }
 
 TEST_CASE("lace/matrix.hpp: square_matrix::invert()") {
   auto m = lace::square_matrix<double, 3>{1.0, 2.0, 3.0, 2.0, 1.0,
                                           2.0, 3.0, 2.0, 1.0}
                .invert();
-  auto v = m.at(0).at(0) + 2.0;
-  CHECK(v - 2.0 == -0.375);
-  v = m.at(0).at(1) + 2.0;
-  CHECK(v - 2.0 == 0.5);
-  v = m.at(0).at(2) + 2.0;
-  CHECK(v - 2.0 == 0.125);
-  v = m.at(1).at(0) + 2.0;
-  CHECK(v - 2.0 == 0.5);
-  v = m.at(1).at(1) + 2.0;
-  CHECK(v - 2.0 == -1.0);
-  v = m.at(1).at(2) + 2.0;
-  CHECK(v - 2.0 == 0.5);
-  v = m.at(2).at(0) + 2.0;
-  CHECK(v - 2.0 == 0.125);
-  v = m.at(2).at(1) + 2.0;
-  CHECK(v - 2.0 == 0.5);
-  v = m.at(2).at(2) + 2.0;
-  CHECK(v - 2.0 == -0.375);
+  CHECK(m.at(0).at(0) == doctest::Approx(-0.375).epsilon(1e-15));
+  CHECK(m.at(0).at(1) == doctest::Approx(0.5).epsilon(1e-15));
+  CHECK(m.at(0).at(2) == doctest::Approx(0.125).epsilon(1e-15));
+  CHECK(m.at(1).at(0) == doctest::Approx(0.5).epsilon(1e-15));
+  CHECK(m.at(1).at(1) == doctest::Approx(-1.0).epsilon(1e-15));
+  CHECK(m.at(1).at(2) == doctest::Approx(0.5).epsilon(1e-15));
+  CHECK(m.at(2).at(0) == doctest::Approx(0.125).epsilon(1e-15));
+  CHECK(m.at(2).at(1) == doctest::Approx(0.5).epsilon(1e-15));
+  CHECK(m.at(2).at(2) == doctest::Approx(-0.375).epsilon(1e-15));
 }

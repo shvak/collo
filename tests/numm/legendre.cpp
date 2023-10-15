@@ -360,67 +360,47 @@ TEST_CASE("numm/legendre.hpp: d2legendre_sh<5>({0.0, 0.5, 1.0})") {
 TEST_CASE("numm/legendre.hpp: roots_legendre<3, double>()") {
   auto t = numm::roots_legendre<3, double>();
   CHECK(t.size() == 3);
-  auto r = std::sqrt(0.6);
-  t[0] += r + 1.0;
-  t[1] += 1.0;
-  t[2] -= r - 1.0;
-  CHECK(t[0] - 1.0 == 0.0);
-  CHECK(t[1] - 1.0 == 0.0);
-  CHECK(t[2] - 1.0 == 0.0);
+  CHECK(t[0] == doctest::Approx(-std::sqrt(0.6)).epsilon(1e-15));
+  CHECK(t[1] == doctest::Approx(0.0).epsilon(1e-15));
+  CHECK(t[2] == doctest::Approx(std::sqrt(0.6)).epsilon(1e-15));
 }
 
 TEST_CASE("numm/legendre.hpp: roots_dlegendre<3, double>()") {
   auto t = numm::roots_dlegendre<3, double>();
   CHECK(t.size() == 2);
-  auto r = std::sqrt(0.2);
-  t[0] += r + 1.0;
-  t[1] -= r - 1.0;
-  CHECK(t[0] - 1.0 == 0.0);
-  CHECK(t[1] - 1.0 == 0.0);
+  CHECK(t[0] == doctest::Approx(-std::sqrt(0.2)).epsilon(1e-15));
+  CHECK(t[1] == doctest::Approx(std::sqrt(0.2)).epsilon(1e-15));
 }
 
 TEST_CASE("numm/legendre.hpp: roots_ilegendre<3, double>()") {
   auto t = numm::roots_ilegendre<3, double>();
   CHECK(t.size() == 4);
-  auto r = std::sqrt(0.2);
-  t[1] += r + 1.0;
-  t[2] -= r - 1.0;
   CHECK(t[0] == -1.0);
-  CHECK(t[1] - 1.0 == 0.0);
-  CHECK(t[2] - 1.0 == 0.0);
+  CHECK(t[1] == doctest::Approx(-std::sqrt(0.2)).epsilon(1e-15));
+  CHECK(t[2] == doctest::Approx(std::sqrt(0.2)).epsilon(1e-15));
   CHECK(t[3] == 1.0);
 }
 
 TEST_CASE("numm/legendre.hpp: roots_legendre_sh<3, double>()") {
   auto t = numm::roots_legendre_sh<3, double>();
   CHECK(t.size() == 3);
-  auto r = std::sqrt(0.6);
-  t[0] += r / 2 + 1.0;
-  t[1] += 1.0;
-  t[2] -= r / 2 - 1.0;
-  CHECK(t[0] - 1.0 == 0.5);
-  CHECK(t[1] - 1.0 == 0.5);
-  CHECK(t[2] - 1.0 == 0.5);
+  CHECK(t[0] == doctest::Approx(0.5 - std::sqrt(0.6) / 2).epsilon(1e-15));
+  CHECK(t[1] == doctest::Approx(0.5).epsilon(1e-15));
+  CHECK(t[2] == doctest::Approx(0.5 + std::sqrt(0.6) / 2).epsilon(1e-15));
 }
 
 TEST_CASE("numm/legendre.hpp: roots_dlegendre_sh<3, double>()") {
   auto t = numm::roots_dlegendre_sh<3, double>();
   CHECK(t.size() == 2);
-  auto r = std::sqrt(0.2);
-  t[0] += r / 2 + 1.0;
-  t[1] -= r / 2 - 1.0;
-  CHECK(t[0] - 1.0 == 0.5);
-  CHECK(t[1] - 1.0 == 0.5);
+  CHECK(t[0] == doctest::Approx(0.5 - std::sqrt(0.2) / 2).epsilon(1e-15));
+  CHECK(t[1] == doctest::Approx(0.5 + std::sqrt(0.2) / 2).epsilon(1e-15));
 }
 
 TEST_CASE("numm/legendre.hpp: roots_ilegendre_sh<3, double>()") {
   auto t = numm::roots_ilegendre_sh<3, double>();
   CHECK(t.size() == 4);
-  auto r = std::sqrt(0.2);
-  t[1] += r / 2 + 1.0;
-  t[2] -= r / 2 - 1.0;
   CHECK(t[0] == 0.0);
-  CHECK(t[1] - 1.0 == 0.5);
-  CHECK(t[2] - 1.0 == 0.5);
+  CHECK(t[1] == doctest::Approx(0.5 - std::sqrt(0.2) / 2).epsilon(1e-15));
+  CHECK(t[2] == doctest::Approx(0.5 + std::sqrt(0.2) / 2).epsilon(1e-15));
   CHECK(t[3] == 1.0);
 }
