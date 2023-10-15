@@ -13,17 +13,31 @@ Include **<collo/lobatto.hpp>** or **<collo/gauss.hpp>** and than you can create
 Parameter *s* define how many intermediate points used for calculation of result on every step. Its value impact accuracy of integrator.
 Arguments *y_0* and *t_0* are initial vector and time. Argument *h* is a time step.
 
-Methods of integrator do a job. Use **do_step()** for calculations and use **steps()**, **time()**, **iternum()** and **state()** to get current state of integrator.<br>
+Methods of integrator do a job. Use **do_step()** for calculations and use other methods to get current state of integrator.<br>
 Method **steps()** give number of calculated steps.<br>
 Method **time()** allow to get current timepoint.<br>
 Method **iternum()** give number of iterations of main cycle of last calculated step.<br>
 Method **state()** can be used to get current *y*.<br>
-Method **force()** can be used to get access to *f* and change it if needed.
-Method **poly()** can be used to get intermediate vector *y* with argument between 0 and 1. Other values of argument will give extrapolation with collocation polynom.
+Method **force()** can be used to get access to *f* and change it if needed.<br>
+Method **poly()** can be used to get intermediate vector *y* with argument between 0 and 1. Other values of argument will give extrapolation with collocation polynom.<br>
 Method **poly_node()** can be used to get vector *y* at collocation nodes.
 
 Please see examples for better understanding.
 
-Note: C++20 standard code, that can be compiled by gcc only now, gcc version 11.0+. Clang wants too many 'typename's and doesn't want some consteval functions.
+Note: You can rich full power of integrator if compile your code and provided examples with option '-march=native'. This feature provided by 'Eigen' library and modern cpu's vectorization. Like this:
 
-Note: You can rich full power of integrator if compile your code and provided examples with option '-march=native'. This feature provided by 'Eigen' library and modern cpu's vectorization.
+> git clone https://github.com/shvak/collo.git<br>
+> cd collo<br>
+> mkdir build<br>
+> CXXFLAGS="-O3 -march=native" cmake -S . -B build<br>
+> cmake --build build<br>
+
+Execute some tests:
+
+> ctest --test-dir build --output-on-failure<br>
+
+Look examples:
+
+> build/examples/isochrone/isochrone<br>
+> build/examples/kepler/kepler<br>
+> build/examples/lotka-volterra/lotka-volterra<br>

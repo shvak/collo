@@ -2,14 +2,8 @@
 #include <cmath>
 #include <collo/lobatto.hpp>
 #include <filesystem>
-#include <fmt/ostream.h>
 #include <fstream>
 #include <iostream>
-
-template <typename T>
-requires std::is_base_of_v<Eigen::DenseBase<T>, T>
-struct fmt::formatter<T> : ostream_formatter {
-};
 
 constexpr std::size_t so = 2; // system order
 constexpr std::size_t ms = 8; // method stages
@@ -45,28 +39,30 @@ int main(int, char **argv) {
   double E_start = LotkaVolterra::energy(lobatto.state());
 
   std::ofstream fout("out.dat");
-  fout << fmt::format("{}\t{}\t{:.17g}\n", /*time*/ 0.0,
-                      lobatto.state().transpose(), /*energy*/ 0.0);
+  fout.precision(15);
+  auto write_to_file = [&fout](double time, const sv_t &y, double energy) {
+    fout << time << '\t' << y.transpose() << '\t' << energy << '\n';
+  };
+  write_to_file(/*time*/ 0., lobatto.state(), /*energy*/ 0.);
 
   auto start = std::chrono::steady_clock::now();
   while (lobatto.steps() < maxsteps) {
     iternum += lobatto.do_step().iternum();
-    fout << fmt::format(
-        "{}\t{}\t{:.17g}\n", lobatto.steps() * h, lobatto.state().transpose(),
-        (LotkaVolterra::energy(lobatto.state()) - E_start) / E_start);
+    write_to_file(lobatto.time(), lobatto.state(),
+                  (LotkaVolterra::energy(lobatto.state()) - E_start) / E_start);
   }
   auto end = std::chrono::steady_clock::now();
 
   fout.close();
 
-  std::cout << fmt::format("{} steps finished\n", lobatto.steps());
-  std::cout << fmt::format("dE / E = {}\n",
-                           (LotkaVolterra::energy(lobatto.state()) - E_start) /
-                               E_start);
-  std::cout << fmt::format("iterations = {}\n", iternum);
-  std::cout << fmt::format("RHS invocations = {}\n", LotkaVolterra::count());
-  std::cout << fmt::format("time elapsed {}",
-                           std::chrono::duration<double>(end - start).count());
+  std::cout << lobatto.steps() << " steps finished\n";
+  std::cout << "dE / E = "
+            << (LotkaVolterra::energy(lobatto.state()) - E_start) / E_start
+            << '\n';
+  std::cout << "iterations = " << iternum << '\n';
+  std::cout << "RHS invocations = " << LotkaVolterra::count() << '\n';
+  std::cout << "time elapsed "
+            << std::chrono::duration<double>(end - start).count() << '\n';
 
   return 0;
 }

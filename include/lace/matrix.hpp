@@ -11,20 +11,20 @@ struct square_matrix : std::array<vector<num_t, n>, n> {
   using vec_t = lace::vector<num_t, n>;
   using base_t = std::array<vec_t, n>;
 
-  consteval vec_t &operator[](std::size_t k) { return base_t::at(k); }
+  constexpr vec_t &operator[](std::size_t k) { return base_t::at(k); }
 
-  consteval const vec_t &operator[](std::size_t k) const {
+  constexpr const vec_t &operator[](std::size_t k) const {
     return base_t::at(k);
   }
 
-  static consteval square_matrix identity() {
+  static constexpr square_matrix identity() {
     square_matrix res;
     for (std::size_t i = 0; i < n; ++i)
       res[i] = vec_t::basis(i);
     return res;
   }
 
-  static consteval square_matrix
+  static constexpr square_matrix
   from_2darray(const std::array<std::array<num_t, n>, n> &arr) {
     square_matrix res;
     for (std::size_t i = 0; i < n; ++i)
@@ -32,7 +32,7 @@ struct square_matrix : std::array<vector<num_t, n>, n> {
     return res;
   }
 
-  consteval auto to_2darray() const {
+  constexpr auto to_2darray() const {
     std::array<std::array<num_t, n>, n> res;
     for (std::size_t i = 0; i < n; ++i)
       for (std::size_t o = 0; o < n; ++o)
@@ -40,7 +40,7 @@ struct square_matrix : std::array<vector<num_t, n>, n> {
     return res;
   }
 
-  consteval auto to_1darray() const {
+  constexpr auto to_1darray() const {
     std::array<num_t, n * n> res;
     for (std::size_t i = 0; i < n; ++i)
       for (std::size_t o = 0; o < n; ++o)
@@ -48,92 +48,92 @@ struct square_matrix : std::array<vector<num_t, n>, n> {
     return res;
   }
 
-  consteval vec_t &row(std::size_t k) { return base_t::at(k); }
+  constexpr vec_t &row(std::size_t k) { return base_t::at(k); }
 
-  consteval const vec_t &row(std::size_t k) const { return base_t::at(k); }
+  constexpr const vec_t &row(std::size_t k) const { return base_t::at(k); }
 
-  consteval const vec_t col(std::size_t k) const {
+  constexpr const vec_t col(std::size_t k) const {
     vec_t res;
     for (std::size_t i = 0; i < n; ++i)
       res[i] = row(i)[k];
     return res;
   }
 
-  consteval square_matrix transpose() const {
+  constexpr square_matrix transpose() const {
     square_matrix res;
     for (std::size_t i = 0; i < n; ++i)
       res.row(i) = col(i);
     return res;
   }
 
-  consteval num_t norm_rows() const {
+  constexpr num_t norm_rows() const {
     vec_t norms;
     for (std::size_t i = 0; i < n; ++i)
       norms[i] = row(i).l1norm();
     return norms.linorm();
   }
 
-  consteval num_t norm_cols() const {
+  constexpr num_t norm_cols() const {
     vec_t norms;
     for (std::size_t i = 0; i < n; ++i)
       norms[i] = col(i).l1norm();
     return norms.linorm();
   }
 
-  consteval square_matrix operator+(const vec_t &v) const {
+  constexpr square_matrix operator+(const vec_t &v) const {
     square_matrix res;
     for (std::size_t i = 0; i < n; ++i)
       res[i] = row(i) + v;
     return res;
   }
 
-  consteval square_matrix operator+(const square_matrix &m) const {
+  constexpr square_matrix operator+(const square_matrix &m) const {
     square_matrix res;
     for (std::size_t i = 0; i < n; ++i)
       res[i] = row(i) + m[i];
     return res;
   }
 
-  consteval square_matrix operator-(const vec_t &v) const {
+  constexpr square_matrix operator-(const vec_t &v) const {
     square_matrix res;
     for (std::size_t i = 0; i < n; ++i)
       res[i] = row(i) - v;
     return res;
   }
 
-  consteval square_matrix operator-(const square_matrix &m) const {
+  constexpr square_matrix operator-(const square_matrix &m) const {
     square_matrix res;
     for (std::size_t i = 0; i < n; ++i)
       res[i] = row(i) - m[i];
     return res;
   }
 
-  consteval square_matrix operator*(num_t num) const {
+  constexpr square_matrix operator*(num_t num) const {
     square_matrix res;
     for (std::size_t i = 0; i < n; ++i)
       res[i] = row(i) * num;
     return res;
   }
 
-  friend consteval square_matrix operator*(num_t num, const square_matrix &m) {
+  friend constexpr square_matrix operator*(num_t num, const square_matrix &m) {
     return m * num;
   }
 
-  consteval vec_t operator*(const vec_t &v) const {
+  constexpr vec_t operator*(const vec_t &v) const {
     vec_t res;
     for (std::size_t i = 0; i < n; ++i)
       res[i] = row(i) * v;
     return res;
   }
 
-  friend consteval vec_t operator*(const vec_t &v, const square_matrix &m) {
+  friend constexpr vec_t operator*(const vec_t &v, const square_matrix &m) {
     vec_t res;
     for (std::size_t i = 0; i < n; ++i)
       res[i] = v * m.col(i);
     return res;
   }
 
-  consteval square_matrix operator*(const square_matrix &m) const {
+  constexpr square_matrix operator*(const square_matrix &m) const {
     square_matrix res;
     for (std::size_t i = 0; i < n; ++i)
       for (std::size_t j = 0; j < n; ++j)
@@ -141,7 +141,7 @@ struct square_matrix : std::array<vector<num_t, n>, n> {
     return res;
   }
 
-  consteval square_matrix swap(std::size_t i, std::size_t j) const {
+  constexpr square_matrix swap(std::size_t i, std::size_t j) const {
     if (i == j)
       return *this;
     square_matrix res{*this};
@@ -151,7 +151,7 @@ struct square_matrix : std::array<vector<num_t, n>, n> {
     return res;
   }
 
-  consteval std::size_t find_pivot(std::size_t k) const {
+  [[nodiscard]] constexpr std::size_t find_pivot(std::size_t k) const {
     std::size_t p = k;
     auto v = (*this).col(k).abs();
     for (std::size_t i = k + 1; i < n; ++i)
@@ -160,7 +160,7 @@ struct square_matrix : std::array<vector<num_t, n>, n> {
     return p;
   }
 
-  consteval auto PLU() const {
+  constexpr auto PLU() const {
     square_matrix L{identity()}, U{*this}, Li{identity()}, Uti{identity()},
         P{identity()};
     for (std::size_t k = 0; k < n; ++k) {
@@ -186,13 +186,13 @@ struct square_matrix : std::array<vector<num_t, n>, n> {
         U[i][k] = num_t{0.0};
       }
       for (std::size_t i = k; i > 0; --i)
-        Uti[k][i-1] = -(Uti.row(k) * U.row(i-1));
+        Uti[k][i - 1] = -(Uti.row(k) * U.row(i - 1));
       Li = li * Li;
     }
     return std::make_tuple(P, L, U, Li, Uti.transpose());
   }
 
-  consteval square_matrix invert() const {
+  constexpr square_matrix invert() const {
     /*square_matrix im = transpose() * ( num_t{1.0} / norm_rows() / norm_cols()
     ); square_matrix E = identity(); square_matrix err = E - im * (*this);
     while( err.norm_rows() + num_t{2.0} != num_t{2.0} or err.norm_cols() +

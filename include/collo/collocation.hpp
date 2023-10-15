@@ -24,7 +24,7 @@ protected:
   using lacev = lace::vector<num_t, method_stage>;
   using lacem = lace::square_matrix<num_t, method_stage>;
 
-  consteval static auto
+  constexpr static auto
   shifted_tn(const std::array<num_t, method_stage> &time_nodes,
              num_t shift = 0.0) {
     if (shift == 0)
@@ -34,7 +34,7 @@ protected:
     return tn_sh.to_array();
   }
 
-  consteval static auto
+  constexpr static auto
   make_nodes_basis(const std::array<num_t, method_stage> &time_nodes, num_t arg,
                    num_t shift) {
     auto nodes_basis = lacem::from_2darray(
@@ -44,22 +44,22 @@ protected:
     return nodes_basis_mod.to_2darray();
   }
 
-  consteval static auto
+  constexpr static auto
   make_nodes_basis_left(const std::array<num_t, method_stage> &time_nodes) {
     return make_nodes_basis(time_nodes, 0.0, 0.0);
   }
 
-  consteval static auto
+  constexpr static auto
   make_nodes_basis_right(const std::array<num_t, method_stage> &time_nodes) {
     return make_nodes_basis(time_nodes, 1.0, 0.0);
   }
 
-  consteval static auto make_pred_nodes_basis_right(
+  constexpr static auto make_pred_nodes_basis_right(
       const std::array<num_t, method_stage> &time_nodes) {
     return make_nodes_basis(time_nodes, 1.0, 1.0);
   }
 
-  consteval static auto
+  constexpr static auto
   make_inv_lsm(const std::array<num_t, method_stage> &time_nodes) {
     auto lsm =
         lacem::from_2darray(numm::dlegendre_sh<method_stage, 1>(time_nodes));
@@ -84,8 +84,8 @@ protected:
 template <numm::number_type num_t, typename rhs_t, typename base_t>
 struct Collocation : protected base_t {
 private:
-  using sv_t = base_t::sv_t;
-  using sva_t = base_t::sva_t;
+  using sv_t = typename base_t::sv_t;
+  using sva_t = typename base_t::sva_t;
   using base_t::basis_left;
   using base_t::distance;
   using base_t::inv_lsm;
@@ -100,17 +100,18 @@ private:
   sv_t y;
   num_t t0;
   num_t h;
-  std::size_t steps_num;
+  std::size_t steps_num{};
   rhs_t rhs;
-  std::size_t iter_num;
-  sva_t alphas;
+  std::size_t iter_num{};
+  sva_t alphas{};
 
   sv_t sv_point(std::size_t i) const { return y + alphas * node_basis_left(i); }
 
 public:
-  Collocation(const sv_t &y0, const num_t &t0_, const num_t &h_, rhs_t rhs_)
-      : y{y0}, t0{t0_}, h{h_}, steps_num{0}, rhs{rhs_}, iter_num{0},
-        alphas{sva_t::Zero()} {}
+  Collocation(auto &&y0, auto &&t0_, auto &&h_, auto &&rhs_)
+      : y{std::forward<decltype(y0)>(y0)}, t0{std::forward<decltype(t0_)>(t0_)},
+        h{std::forward<decltype(h_)>(h_)},
+        rhs{std::forward<decltype(rhs_)>(rhs_)} {}
 
   auto time() const { return t0 + steps_num * h; }
 
@@ -159,14 +160,14 @@ public:
 
 template <typename base_t> struct Predictor_Base : protected base_t {
 private:
-  using matrix_t = base_t::matrix_t;
-  using vector_t = base_t::vector_t;
+  using matrix_t = typename base_t::matrix_t;
+  using vector_t = typename base_t::vector_t;
 
 protected:
   static const auto &inv_lsm() {
-    static matrix_t inv_lsm = matrix_t{
-        base_t::make_inv_lsm(base_t::time_nodes)
-            .data()}; // auto transpose: array is row major, matrix is col major
+    // auto transpose: array is row major, matrix is col major
+    static matrix_t inv_lsm =
+        matrix_t{base_t::make_inv_lsm(base_t::time_nodes).data()};
     return inv_lsm;
   }
 
@@ -209,8 +210,8 @@ protected:
 template <typename base_t>
 struct Predictor_Zero : protected Predictor_Base<base_t> {
 protected:
-  using sv_t = base_t::sv_t;
-  using sva_t = base_t::sva_t;
+  using sv_t = typename base_t::sv_t;
+  using sva_t = typename base_t::sva_t;
 
   auto make_alphas(const sva_t &, const sv_t &, auto, auto,
                    const auto &) const {
@@ -223,8 +224,8 @@ protected:
 template <typename base_t>
 struct Predictor_Simple : protected Predictor_Base<base_t> {
 protected:
-  using sv_t = base_t::sv_t;
-  using sva_t = base_t::sva_t;
+  using sv_t = typename base_t::sv_t;
+  using sva_t = typename base_t::sva_t;
   using Predictor_Base<base_t>::inv_lsm;
   using Predictor_Base<base_t>::rhs_invoke;
 
@@ -242,8 +243,8 @@ protected:
 template <typename base_t>
 struct Predictor_PrevStep : protected Predictor_Base<base_t> {
 protected:
-  using sv_t = base_t::sv_t;
-  using sva_t = base_t::sva_t;
+  using sv_t = typename base_t::sv_t;
+  using sva_t = typename base_t::sva_t;
 
   auto make_alphas(const sva_t &alphas, const sv_t &, auto, auto,
                    const auto &) const {
@@ -256,16 +257,16 @@ protected:
 template <typename base_t>
 struct Predictor_Euler : protected Predictor_Base<base_t> {
 protected:
-  using sv_t = base_t::sv_t;
-  using sva_t = base_t::sva_t;
+  using sv_t = typename base_t::sv_t;
+  using sva_t = typename base_t::sva_t;
   using Predictor_Base<base_t>::tp;
   using Predictor_Base<base_t>::dt;
   using Predictor_Base<base_t>::inv_lsm;
   using Predictor_Base<base_t>::rhs_invoke;
 
 private:
-  static sv_t euler(const base_t::sv_t &y, auto t, std::optional<std::size_t> i,
-                    auto h, const auto &rhs) {
+  static sv_t euler(const sv_t &y, auto t, std::optional<std::size_t> i, auto h,
+                    const auto &rhs) {
     if (h == 0)
       return y;
     return y + rhs_invoke(rhs, t, i, y) * h;
@@ -291,16 +292,16 @@ protected:
 template <typename base_t>
 struct Predictor_RK4 : protected Predictor_Base<base_t> {
 protected:
-  using sv_t = base_t::sv_t;
-  using sva_t = base_t::sva_t;
+  using sv_t = typename base_t::sv_t;
+  using sva_t = typename base_t::sva_t;
   using Predictor_Base<base_t>::tp;
   using Predictor_Base<base_t>::dt;
   using Predictor_Base<base_t>::inv_lsm;
   using Predictor_Base<base_t>::rhs_invoke;
 
 private:
-  static sv_t rk4(const base_t::sv_t &y, auto t, std::optional<std::size_t> i,
-                  auto h, const auto &rhs) {
+  static sv_t rk4(const sv_t &y, auto t, std::optional<std::size_t> i, auto h,
+                  const auto &rhs) {
     if (h == 0)
       return y;
     auto k1 = rhs_invoke(rhs, t, i, y);
@@ -332,9 +333,9 @@ protected:
 template <typename base_t>
 struct Predictor_Poly : protected Predictor_Base<base_t> {
 protected:
-  using sv_t = base_t::sv_t;
-  using sva_t = base_t::sva_t;
-  using vector_t = base_t::vector_t;
+  using sv_t = typename base_t::sv_t;
+  using sva_t = typename base_t::sva_t;
+  using vector_t = typename base_t::vector_t;
   using Predictor_Base<base_t>::tp;
   using Predictor_Base<base_t>::inv_lsm;
   using Predictor_Base<base_t>::rhs_invoke;
@@ -363,11 +364,11 @@ protected:
 template <typename base_t, std::size_t k>
 struct Predictor_BackDiff : protected Predictor_Base<base_t> {
 protected:
-  using sv_t = base_t::sv_t;
-  using sva_t = base_t::sva_t;
+  using sv_t = typename base_t::sv_t;
+  using sva_t = typename base_t::sva_t;
 
 private:
-  std::array<std::deque<sva_t>, k> bdiff;
+  std::array<std::deque<sva_t>, k> bdiff{};
 
 protected:
   using Predictor_Base<base_t>::tp;
@@ -375,7 +376,7 @@ protected:
   using Predictor_Base<base_t>::node_basis_left;
   using Predictor_Base<base_t>::rhs_invoke;
 
-  Predictor_BackDiff() : bdiff{} {}
+  // Predictor_BackDiff() :  {}
 
   sva_t make_alphas(const sva_t &, const sv_t &y, auto t, auto h,
                     const auto &rhs) const {
@@ -409,37 +410,74 @@ protected:
 
 enum class Pred { Zero, Simple, PrevStep, Euler, RK4, Poly, BackDiff };
 
-template <Pred p, numm::number_type num_t, std::size_t system_order,
-          std::size_t method_stage,
-          template <numm::number_type, std::size_t, std::size_t>
-          typename base_t,
-          std::size_t param>
-struct Pred_select {
-  using type = std::conditional_t<
-      p == Pred::Zero,
-      Predictor_Zero<base_t<num_t, system_order, method_stage>>,
-      std::conditional_t<
-          p == Pred::Simple,
-          Predictor_Simple<base_t<num_t, system_order, method_stage>>,
-          std::conditional_t<
-              p == Pred::PrevStep,
-              Predictor_PrevStep<base_t<num_t, system_order, method_stage>>,
-              std::conditional_t<
-                  p == Pred::Euler,
-                  Predictor_Euler<base_t<num_t, system_order, method_stage>>,
-                  std::conditional_t<
-                      p == Pred::RK4,
-                      Predictor_RK4<base_t<num_t, system_order, method_stage>>,
-                      std::conditional_t<
-                          p == Pred::Poly,
-                          Predictor_Poly<
-                              base_t<num_t, system_order, method_stage>>,
-                          std::conditional_t<
-                              p == Pred::BackDiff,
-                              Predictor_BackDiff<
-                                  base_t<num_t, system_order, method_stage>,
-                                  param>,
-                              void>>>>>>>;
+// template <Pred p, numm::number_type num_t, std::size_t system_order,
+//           std::size_t method_stage,
+//           template <numm::number_type, std::size_t, std::size_t>
+//           typename base_t,
+//           std::size_t param>
+// struct Pred_select {
+//   using type = std::conditional_t<
+//       p == Pred::Zero,
+//       Predictor_Zero<base_t<num_t, system_order, method_stage>>,
+//       std::conditional_t<
+//           p == Pred::Simple,
+//           Predictor_Simple<base_t<num_t, system_order, method_stage>>,
+//           std::conditional_t<
+//               p == Pred::PrevStep,
+//               Predictor_PrevStep<base_t<num_t, system_order, method_stage>>,
+//               std::conditional_t<
+//                   p == Pred::Euler,
+//                   Predictor_Euler<base_t<num_t, system_order, method_stage>>,
+//                   std::conditional_t<
+//                       p == Pred::RK4,
+//                       Predictor_RK4<base_t<num_t, system_order,
+//                       method_stage>>, std::conditional_t<
+//                           p == Pred::Poly,
+//                           Predictor_Poly<
+//                               base_t<num_t, system_order, method_stage>>,
+//                           std::conditional_t<
+//                               p == Pred::BackDiff,
+//                               Predictor_BackDiff<
+//                                   base_t<num_t, system_order, method_stage>,
+//                                   param>,
+//                               void>>>>>>>;
+// };
+//
+template <Pred p, typename base_t, std::size_t param> struct Pred_select {
+  template <Pred V1, Pred V2, typename T>
+  struct case_t : std::bool_constant<V1 == V2> {
+    using type = T;
+  };
+
+  template <typename T> struct default_type : std::true_type {
+    using type = T;
+  };
+
+  using type = typename std::disjunction<
+      case_t<p, Pred::Zero, Predictor_Zero<base_t>>,
+      case_t<p, Pred::Simple, Predictor_Simple<base_t>>,
+      case_t<p, Pred::PrevStep, Predictor_PrevStep<base_t>>,
+      case_t<p, Pred::Euler, Predictor_Euler<base_t>>,
+      case_t<p, Pred::RK4, Predictor_RK4<base_t>>,
+      case_t<p, Pred::Poly, Predictor_Poly<base_t>>,
+      case_t<p, Pred::BackDiff, Predictor_BackDiff<base_t, param>>,
+      default_type<void>>::type;
+  //
+  // using type = std::conditional_t<
+  //     p == Pred::Zero, Predictor_Zero<base_t>,
+  //     std::conditional_t<
+  //         p == Pred::Simple, Predictor_Simple<base_t>,
+  //         std::conditional_t<
+  //             p == Pred::PrevStep, Predictor_PrevStep<base_t>,
+  //             std::conditional_t<
+  //                 p == Pred::Euler, Predictor_Euler<base_t>,
+  //                 std::conditional_t<
+  //                     p == Pred::RK4, Predictor_RK4<base_t>,
+  //                     std::conditional_t<
+  //                         p == Pred::Poly, Predictor_Poly<base_t>,
+  //                         std::conditional_t<p == Pred::BackDiff,
+  //                                            Predictor_BackDiff<base_t,
+  //                                            param>, void>>>>>>>;
 };
 
 } // namespace collo
