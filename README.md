@@ -36,7 +36,7 @@ Use `do_step()` to integrate a single step with a fixed step size.
 * `state()` returns the current state vector $y$.
 * `force()` can be used to get access to $f(t, y)$ and change it if needed.
 * `poly(some_float_type t)` returns the intermediate interpolated vector $y$ with the argument `t` being between 0 and 1. Other values of argument will give extrapolation with collocation polynomial.
-* `poly_node(size_t i)` returns the vector $y$ at collocation node with number `i` ${} \at [0, s)$.
+* `poly_node(size_t i)` returns the vector $y$ at collocation node with number `i` ${} \in [0, s)$.
 
 ## Compilation
 
