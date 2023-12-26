@@ -16,32 +16,11 @@ add_library(collo INTERFACE)
 target_compile_features(collo INTERFACE cxx_std_20)
 target_include_directories(collo INTERFACE
   $<BUILD_INTERFACE:${COLLO_INCLUDE_DIR}> ${EIGEN3_INCLUDE_DIRS}
-  # $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
-
-# include(GNUInstallDirs)
-
-# install(DIRECTORY include TYPE INCLUDE)
-#install(TARGETS collo EXPORT collo-export)
-#install(EXPORT collo-export DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/collo)
-
-#configure_file(
-#    ${CMAKE_SOURCE_DIR}/pkg/collo-config.cmake.in
-#    ${CMAKE_BINARY_DIR}/pkg/collo-config.cmake
-#    @ONLY)
-#configure_file(
-#    ${CMAKE_SOURCE_DIR}/pkg/collo-config-version.cmake.in
-#    ${CMAKE_BINARY_DIR}/pkg/collo-config-version.cmake
-#    @ONLY)
-#install(FILES
-#    ${CMAKE_BINARY_DIR}/pkg/collo-config.cmake
-#    ${CMAKE_BINARY_DIR}/pkg/collo-config-version.cmake
-#    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/collo)
 
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   add_subdirectory(examples)
   include(CTest)
-  # set(BUILD_TESTING OFF)
   if(BUILD_TESTING)
     add_subdirectory(tests)
   endif()
