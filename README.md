@@ -5,9 +5,8 @@ This is the header-only library for collocation integrator for ODEs (ordinary di
 The integrator offers an adjustable order, single-step, implicit method for solving ODEs : $y' = f(t, y)$.
 Here $y$ is a n-dimensional vector that is represented by `Eigen::Matrix`.
 
-You can find details about collocation integrators in these books:
-* Preston C. Hammer and J W Hollingsworth. “Trapezoidal methods of approximating solutions of differential equations”. B: Mathematics of Computation 9 (1955), c. 92—96.
-* Ernst Hairer, Christian Lubich and Gerhard Wanner. “Geometric numerical integration illustrated by the Störmer–Verlet method”. B: Acta Numerica 12 (2003), c. 399—450.
+You can find details about collocation integrators in 
+Ernst Hairer, Gerhard Wanner and Christian Lubich “Geometric Numerical Integration: Structure-Preserving Algorithms for Ordinary Differential Equations”, 2nd ed. Springer Berlin, Heidelberg, 2006.
 
 ## Getting started
 
@@ -34,10 +33,10 @@ Use `do_step()` to integrate a single step with a fixed step size.
 * `steps()` returns the number of calculated steps.
 * `time()` returns the current time `t = t_0 + h · steps()`.
 * `iternum()` returns the number of iterations of the main implicit method loop on the last step.
-* `state()` returns the current state $y$.
+* `state()` returns the current state vector $y$.
 * `force()` can be used to get access to $f(t, y)$ and change it if needed.
 * `poly(some_float_type t)` returns the intermediate interpolated vector $y$ with the argument `t` being between 0 and 1. Other values of argument will give extrapolation with collocation polynomial.
-* `poly_node(size_t i)` returns the vector $y$ at collocation node with number `i`.
+* `poly_node(size_t i)` returns the vector $y$ at collocation node with number `i` ${} \at [0, s)$.
 
 ## Compilation
 
