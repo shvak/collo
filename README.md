@@ -16,11 +16,11 @@ Use **auto** as a type of second argument or use the helper alias **collo::state
 
 Include **<collo/lobatto.hpp>** and then you can create an integrator with the function **make_Lobatto**. Example:
 
-    `auto lobatto = make_Lobatto<some_float_type, n, s, type_of_f>(y_0, t_0, h);`
+    auto lobatto = make_Lobatto<some_float_type, n, s, type_of_f>(y_0, t_0, h);
 
 or
 
-    `auto lobatto = make_Lobatto<some_float_type, n, s>(y_0, t_0, h, f);`
+    auto lobatto = make_Lobatto<some_float_type, n, s>(y_0, t_0, h, f);
 
 Parameter *s* determines how many intermediate points are used for the calculation of result on every step. This parameter impacts accuracy of integrator $O(h^{2s-2})$.
 Arguments *y_0* and *t_0* are initial vector and time. Argument *h* is a time step.
@@ -39,35 +39,35 @@ Use `do_step()` to integrate a single step with a fixed step size. <br>
 
 ## Compilation
 
-This project is dependent on the library `Eigen` (version 3.4+). You can get it from [official page](https://eigen.tuxfamily.org/index.php?title=Main_Page).
+This project is dependent on the library **Eigen** (version 3.4+). You can get it from [official page](https://eigen.tuxfamily.org/index.php?title=Main_Page).
 
-    `git clone https://github.com/shvak/collo.git`
-    `cd collo`
-    `mkdir build`
-    `CXXFLAGS="-O3 -march=native" cmake -DBUILD_TESTING=OFF -S . -B build`
-    `cmake --build build`
+    git clone https://github.com/shvak/collo.git
+    cd collo
+    mkdir build
+    CXXFLAGS="-O3 -march=native" cmake -DBUILD_TESTING=OFF -S . -B build
+    cmake --build build
 
-Note: You can improve the performance of the integrator if you compile your code with the option '-march=native'. This feature is provided by the 'Eigen' library and modern CPU vectorization.
+Note: The integrator performance improves when using the compilation option '-march=native'. This feature is provided by the **Eigen** library and modern CPU vectorization.
 
-Additionally, if you want to use built-in tests, you will need the library `doctest`. Then:
+Additionally, if you want to use built-in tests, you will need the library **doctest**. Then:
 
-    `CXXFLAGS="-O3 -march=native" cmake -DBUILD_TESTING=ON -S . -B build --fresh`
-    `cmake --build build --clean-first`
+    CXXFLAGS="-O3 -march=native" cmake -DBUILD_TESTING=ON -S . -B build --fresh
+    cmake --build build --clean-first
 
 And run tests:
 
-    `ctest --test-dir build --output-on-failure`
+    ctest --test-dir build --output-on-failure
 
 ## Examples
 
 Please take a look at the examples:
 
-    `build/examples/isochrone/isochrone`
-    `build/examples/kepler/kepler`
-    `build/examples/lotka-volterra/lotka-volterra`
+    examples/isochrone
+    examples/kepler
+    examples/lotka-volterra
 
 They will help you understand the intended logic of using the **collo**.
 
 ## Usage
 
-The author suggests using the **collo** as a git-submodule at the moment.
+The author currently suggests using **collo** as a git-submodule in your projects.
