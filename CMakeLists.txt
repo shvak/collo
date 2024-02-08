@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.21)
 
 set(major_version 1)
 set(minor_version 2)
-set(patch_version 0)
+set(patch_version 1)
 set(version ${major_version}.${minor_version}.${patch_version})
 
 project(collo VERSION ${version} DESCRIPTION "Header-only library collo: collocation integrator for ODEs" HOMEPAGE_URL "https://github.com/shvak/collo" LANGUAGES CXX)
