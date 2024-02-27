@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 3.21)
-
 example_exe(kepler)
 
 add_custom_command(TARGET kepler POST_BUILD

@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 3.21)
-
 example_exe(isochrone)
 
 add_custom_command(TARGET isochrone POST_BUILD

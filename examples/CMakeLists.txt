@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 3.21)
-
 function(example_exe example_name)
   add_executable(${example_name} ${example_name}.cpp)
   target_compile_features(${example_name} PRIVATE cxx_std_20)
