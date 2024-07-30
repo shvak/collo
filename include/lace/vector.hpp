@@ -2,6 +2,7 @@
 #define LACE_VECTOR_HPP
 
 #include "numm/base.hpp"
+#include <algorithm>
 #include <array>
 
 namespace lace {
